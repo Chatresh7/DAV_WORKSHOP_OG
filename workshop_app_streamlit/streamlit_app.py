@@ -103,8 +103,8 @@ elif choice == "Team Selection":
         if submit_team:
             c = conn.cursor()
             c.execute("DELETE FROM teams WHERE username=?", (st.session_state.username,))
-            c.execute("""INSERT INTO teams VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
-                      (st.session_state.username, team_size, *details, *[""]*(15 - len(details))))
+            c.execute("""INSERT INTO teams VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+          (st.session_state.username, team_size, *details, *[""]*(15 - len(details))))
             conn.commit()
             st.success("Team saved successfully.")
 
