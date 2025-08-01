@@ -137,12 +137,14 @@ elif choice == "Transaction":
     else:
         st.warning("Please fill team details first.")
 
+
 # Logout
 elif choice == "Logout":
+    st.success("Logged out successfully.")
     st.session_state.user_logged_in = False
     st.session_state.username = ""
-    st.success("Logged out successfully.")
-    st.experimental_rerun()
+    st.stop()
+
 
 # Admin Panel
 elif choice == "Admin":
