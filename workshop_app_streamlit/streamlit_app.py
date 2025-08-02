@@ -152,7 +152,7 @@ elif choice == "Transaction":
         st.write(f"\U0001F4B0 Amount to be paid: ₹{price}")
 
         try:
-            with open("your_qr.png", "rb") as f:
+            with open("workshop_app_streamlit/your_qr.png", "rb") as f:
                 st.image(f.read(), caption="Scan to Pay", width=250)
         except FileNotFoundError:
             st.error("QR code image 'your_qr.png' not found.")
