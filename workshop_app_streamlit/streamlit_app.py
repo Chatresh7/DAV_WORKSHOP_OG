@@ -170,7 +170,7 @@ elif choice == "Login":
 elif choice == "Team Selection":
     st.title("Team Selection")
     team_size = st.radio("Select Team Size", ["Single (₹50)", "Duo (₹80)", "Trio (₹100)"])
-    size_map = {"Single (₹50)": 1, "Duo (₹80)":2, "Trio (₹100)": 3}
+    size_map = {"Single (₹50)": 1, "Duo (₹80)": 2, "Trio (₹100)": 3}
     size = size_map[team_size]
 
     if st.session_state.clear_team_form:
@@ -180,10 +180,11 @@ elif choice == "Team Selection":
         st.session_state.clear_team_form = False
         safe_rerun()
 
+    submitted_success = False  # flag to handle QR generation and message
+
     with st.form("team_form"):
         details = []
         for i in range(1, size + 1):
-            # No number for single, numbered for duo/trio
             show_number = (size != 1)
             label_suffix = f" {i}" if show_number else ""
 
@@ -214,22 +215,20 @@ elif choice == "Team Selection":
                 c.execute(f"INSERT INTO teams VALUES ({placeholders})",
                           (st.session_state.username, team_size, *details, *[""] * (15 - len(details))))
                 conn.commit()
-                # Prepare team data for QR
-                team_info = f"Team Leader: {details[0]} ({details[1]})\n"
-                for i in range(1, size):
-                    team_info += f"Member {i+1}: {details[i*5]} ({details[i*5+1]})\n"
+                submitted_success = True  # trigger QR logic
 
-# Generate QR
-                qr_bytes = generate_team_qr(team_info)
+    # ✅ QR and success message OUTSIDE form
+    if submitted_success:
+        team_info = f"Team Leader: {details[0]} ({details[1]})\n"
+        for i in range(1, size):
+            team_info += f"Member {i+1}: {details[i*5]} ({details[i*5+1]})\n"
 
-# Show QR to user
-                st.success("✅ Team saved successfully!")
-                st.image(qr_bytes, caption="Your Team QR Code", width=250)
-                st.download_button("📥 Download QR Code", data=qr_bytes, file_name="team_qr.png")
+        qr_bytes = generate_team_qr(team_info)
 
-# Optionally move to transaction manually
-                st.info("Proceed to the Transaction tab to complete your registration.")
-
+        st.success("✅ Team saved successfully!")
+        st.image(qr_bytes, caption="Your Team QR Code", width=250)
+        st.download_button("📥 Download QR Code", data=qr_bytes, file_name="team_qr.png")
+        st.info("Proceed to the Transaction tab to complete your registration.")
 
 
 # Transaction
