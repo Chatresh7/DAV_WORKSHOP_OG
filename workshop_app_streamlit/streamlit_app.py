@@ -229,15 +229,20 @@ elif choice == "Transaction":
             if st.session_state.txn_success:
                 st.success("Transaction recorded successfully!")
                 st.markdown(
-                    '''
-                    <a href="https://chat.whatsapp.com/CGE0UiKKPeu63xzZqs8sMW" target="_blank" style="text-decoration: none;">
-                        <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="WhatsApp" width="24" style="vertical-align: middle; margin-right: 8px;">
-                        <span style="font-size: 18px; vertical-align: middle;">Join WhatsApp Group</span>
+                    """
+                    <a href="https://chat.whatsapp.com/CGE0UiKKPeu63xzZqs8sMW" target="_blank"
+                       style="display: inline-flex; align-items: center; padding: 10px 20px;
+                              background-color: #25D366; color: black; border-radius: 6px;
+                              text-decoration: none; font-weight: bold;">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg"
+                             alt="WhatsApp" width="24" style="margin-right: 10px;">
+                        Join WhatsApp Group
                     </a>
-                    ''',
+                    """,
                     unsafe_allow_html=True
                 )
                 st.session_state.txn_success = False
+
 
 
     else:
