@@ -36,8 +36,9 @@ conn = init_db()
 
 # Email validation function
 def is_valid_email(email):
-    pattern = r'^[\w\.-]+@[\w\.-]+\.\w+$'
+    pattern = r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$"
     return re.match(pattern, email) is not None
+
 
 # Safe rerun function
 def safe_rerun():
@@ -74,6 +75,7 @@ elif st.session_state.admin_logged_in:
 
 choice = st.sidebar.selectbox("Navigation", menu)
 
+
 # Register
 if choice == "Register":
     st.title("User Registration")
@@ -98,6 +100,7 @@ if choice == "Register":
                         st.success("Registered successfully. Please login.")
                     except:
                         st.error("Error occurred while registering.")
+
 
 # Login
 elif choice == "Login":
