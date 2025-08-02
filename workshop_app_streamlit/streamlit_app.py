@@ -251,10 +251,13 @@ elif choice == "Admin" and st.session_state.admin_logged_in:
             image_data_url = f"data:image/png;base64,{img_base64}"
 
             # Display an eye icon with clickable preview
+            # Display only the eye icon, clickable
             st.markdown(
-                f'<a href="{image_data_url}" target="_blank" style="font-size:22px;" title="Click to view screenshot 👁️">👁️ View Screenshot</a>',
+                f'<a href="{image_data_url}" target="_blank" title="View Screenshot" style="text-decoration: none;">'
+                f'<span style="font-size:22px;">👁️</span></a>',
                 unsafe_allow_html=True
             )
+
         else:
             st.info("No screenshot uploaded.")
         st.markdown("---")
