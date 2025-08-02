@@ -1,4 +1,4 @@
-# Updated streamlit_app.py with requested changes
+# Updated streamlit_app.py with placeholder fix
 import streamlit as st
 import sqlite3
 import pandas as pd
@@ -95,8 +95,8 @@ elif choice == "Login":
 # Team Selection
 elif choice == "Team Selection":
     st.title("Team Selection")
-    team_size = st.radio("Select Team Size", ["Single (\u20b950)", "Duo (\u20b980)", "Trio (\u20b9100)"])
-    size_map = {"Single (\u20b950)": 1, "Duo (\u20b980)": 2, "Trio (\u20b9100)": 3}
+    team_size = st.radio("Select Team Size", ["Single (₹50)", "Duo (₹80)", "Trio (₹100)"])
+    size_map = {"Single (₹50)": 1, "Duo (₹80)": 2, "Trio (₹100)": 3}
     size = size_map[team_size]
 
     with st.form("team_form"):
@@ -117,7 +117,8 @@ elif choice == "Team Selection":
         if submit_team:
             c = conn.cursor()
             c.execute("DELETE FROM teams WHERE username=?", (st.session_state.username,))
-            c.execute("INSERT INTO teams VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+            placeholders = ",".join(["?"] * 17)
+            c.execute(f"INSERT INTO teams VALUES ({placeholders})",
                       (st.session_state.username, team_size, *details, *[""] * (15 - len(details))))
             conn.commit()
             st.success("Team saved successfully. Redirecting to transaction page...")
