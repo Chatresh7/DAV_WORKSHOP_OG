@@ -150,7 +150,7 @@ elif choice == "Team Selection":
             st.subheader("Your Details" if size == 1 else f"Member {i}")
             name = st.text_input(f"Name{label_suffix}", key=f"name_{i}")
             reg = st.text_input(f"Reg Number{label_suffix}", key=f"reg_{i}")
-            year = st.selectbox(f"Year{label_suffix}", options=["1", "2", "3", "4"], key=f"year_{i}")
+            year = st.selectbox(f"Year{label_suffix}", options=["2", "3", "4"], key=f"year_{i}")
             branch = st.selectbox(f"Branch{label_suffix}", options=["CSD", "CSE", "CSM", "IT"], key=f"branch_{i}")
             section = st.selectbox(f"Section{label_suffix}", options=["A", "B", "C", "D"], key=f"section_{i}")
             details.extend([name, reg, year, branch, section])
