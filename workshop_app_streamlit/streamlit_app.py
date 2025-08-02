@@ -39,10 +39,11 @@ conn = init_db()
 # Safe rerun function
 def safe_rerun():
     try:
-        st.experimental_rerun()
+        st.rerun()
     except RuntimeError as e:
         if "Session state" not in str(e):
             raise
+
 
 # Session state
 if "user_logged_in" not in st.session_state:
