@@ -103,6 +103,17 @@ def generate_team_pdf(team_data, username):
 
 
 st.set_page_config(page_title="Workshop Portal", layout="centered")
+# Track whether to show Register or Login
+if "form_view" not in st.session_state:
+    st.session_state.form_view = None
+
+def show_register():
+    st.session_state.form_view = "register"
+
+def show_login():
+    st.session_state.form_view = "login"
+
+
 
 # Initialize DB
 def init_db():
@@ -156,11 +167,77 @@ if "clear_team_form" not in st.session_state:
 if "txn_success" not in st.session_state:
     st.session_state.txn_success = False
 
+# Homepage for non-logged-in users
+if not st.session_state.user_logged_in and not st.session_state.admin_logged_in:
+    st.title("👋 Welcome to the Workshop Portal")
+
+    col1, col2 = st.columns(2)
+    with col1:
+        st.button("📝 Register", on_click=lambda: st.session_state.update(form_view="register"))
+    with col2:
+        st.button("🔐 Login", on_click=lambda: st.session_state.update(form_view="login"))
+
+    if st.session_state.form_view == "register":
+        st.subheader("Register")
+        with st.form("register_form"):
+            username = st.text_input("Email ID (will be your username)")
+            password = st.text_input("Password", type="password")
+            submitted = st.form_submit_button("Register")
+            if submitted:
+                if not username or not password:
+                    st.error("All fields are required.")
+                elif not is_valid_email(username):
+                    st.error("Please enter a valid email address.")
+                else:
+                    c = conn.cursor()
+                    c.execute("SELECT 1 FROM users WHERE username=?", (username,))
+                    if c.fetchone():
+                        st.error("This email is already registered. Please login.")
+                    else:
+                        try:
+                            c.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username, password))
+                            conn.commit()
+                            st.success("Registered successfully. Please login.")
+                            send_email(
+                                username,
+                                "Workshop Registration Confirmed ✅",
+                                "Thank you for registering! You've successfully created an account in the Workshop Portal."
+                            )
+                        except:
+                            st.error("Error occurred while registering.")
+
+    elif st.session_state.form_view == "login":
+        st.subheader("Login")
+        with st.form("login_form"):
+            username = st.text_input("Email ID")
+            password = st.text_input("Password", type="password")
+            login_btn = st.form_submit_button("Login")
+            if login_btn:
+                if username == "admin" and password == "admin123":
+                    st.session_state.admin_logged_in = True
+                    st.success("Admin login successful.")
+                    safe_rerun()
+                else:
+                    c = conn.cursor()
+                    c.execute("SELECT * FROM users WHERE username=? AND password=?", (username, password))
+                    if c.fetchone():
+                        st.session_state.user_logged_in = True
+                        st.session_state.username = username
+                        st.success("Logged in successfully!")
+                        safe_rerun()
+                    else:
+                        st.error("Invalid credentials.")
+
+    if st.session_state.form_view:
+        st.button("🔙 Back", on_click=lambda: st.session_state.update(form_view=None))
+
+
 
 # Sidebar menu based on login and team registration status
-menu = ["Register", "Login"]
+#menu = ["Register", "Login"]
 
 if st.session_state.user_logged_in:
+    # ✅ Decide menu based on team status
     c = conn.cursor()
     c.execute("SELECT name1, reg1, year1 FROM teams WHERE username=?", (st.session_state.username,))
     row = c.fetchone()
@@ -169,65 +246,76 @@ if st.session_state.user_logged_in:
         menu = ["Team Selection", "Transaction", "Logout"]
     else:
         menu = ["Team Selection", "Logout"]
-elif st.session_state.admin_logged_in:
-    menu = ["Admin", "Logout"]
 
-choice = st.sidebar.selectbox("Navigation", menu)
+    # ✅ Show sidebar
+    choice = st.sidebar.selectbox("Navigation", menu)
+
+elif st.session_state.admin_logged_in:
+    # ✅ Admin menu
+    menu = ["Admin", "Logout"]
+    choice = st.sidebar.selectbox("Navigation", menu)
+
+else:
+    choice = None  # Nothing shown in sidebar before login
+
+
+#choice = st.sidebar.selectbox("Navigation", menu)
 
 
 # Register
-if choice == "Register":
-    st.title("User Registration")
-    with st.form("register_form"):
-        username = st.text_input("Email ID (will be your username)")
-        password = st.text_input("Password", type="password")
-        submitted = st.form_submit_button("Register")
-        if submitted:
-            if not username or not password:
-                st.error("All fields are required.")
-            elif not is_valid_email(username):
-                st.error("Please enter a valid email address.")
-            else:
-                c = conn.cursor()
-                c.execute("SELECT 1 FROM users WHERE username=?", (username,))
-                if c.fetchone():
-                    st.error("This email is already registered. Please login.")
-                else:
-                    try:
-                        c.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username, password))
-                        conn.commit()
-                        st.success("Registered successfully. Please login.")
-                        send_email(
-                            username,
-                            "Workshop Registration Confirmed ✅",
-                            "Thank you for registering! You've successfully created an account in the Workshop Portal."
-                        )
-                    except:
-                        st.error("Error occurred while registering.")
+# if choice == "Register":
+#     st.title("User Registration")
+#     with st.form("register_form"):
+#         username = st.text_input("Email ID (will be your username)")
+#         password = st.text_input("Password", type="password")
+#         submitted = st.form_submit_button("Register")
+#         if submitted:
+#             if not username or not password:
+#                 st.error("All fields are required.")
+#             elif not is_valid_email(username):
+#                 st.error("Please enter a valid email address.")
+#             else:
+#                 c = conn.cursor()
+#                 c.execute("SELECT 1 FROM users WHERE username=?", (username,))
+#                 if c.fetchone():
+#                     st.error("This email is already registered. Please login.")
+#                 else:
+#                     try:
+#                         c.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username, password))
+#                         conn.commit()
+#                         st.success("Registered successfully. Please login.")
+#                         send_email(
+#                             username,
+#                             "Workshop Registration Confirmed ✅",
+#                             "Thank you for registering! You've successfully created an account in the Workshop Portal."
+#                         )
+#                     except:
+#                         st.error("Error occurred while registering.")
 
 
-# Login
-elif choice == "Login":
-    st.title("Login")
-    with st.form("login_form"):
-        username = st.text_input("Email ID")
-        password = st.text_input("Password", type="password")
-        login_btn = st.form_submit_button("Login")
-        if login_btn:
-            if username == "admin" and password == "admin123":
-                st.session_state.admin_logged_in = True
-                st.success("Admin login successful.")
-                safe_rerun()
-            else:
-                c = conn.cursor()
-                c.execute("SELECT * FROM users WHERE username=? AND password=?", (username, password))
-                if c.fetchone():
-                    st.session_state.user_logged_in = True
-                    st.session_state.username = username
-                    st.success("Logged in successfully!")
-                    safe_rerun()
-                else:
-                    st.error("Invalid credentials.")
+# # Login
+# elif choice == "Login":
+#     st.title("Login")
+#     with st.form("login_form"):
+#         username = st.text_input("Email ID")
+#         password = st.text_input("Password", type="password")
+#         login_btn = st.form_submit_button("Login")
+#         if login_btn:
+#             if username == "admin" and password == "admin123":
+#                 st.session_state.admin_logged_in = True
+#                 st.success("Admin login successful.")
+#                 safe_rerun()
+#             else:
+#                 c = conn.cursor()
+#                 c.execute("SELECT * FROM users WHERE username=? AND password=?", (username, password))
+#                 if c.fetchone():
+#                     st.session_state.user_logged_in = True
+#                     st.session_state.username = username
+#                     st.success("Logged in successfully!")
+#                     safe_rerun()
+#                 else:
+#                     st.error("Invalid credentials.")
+
 
 
 elif choice == "Team Selection":
