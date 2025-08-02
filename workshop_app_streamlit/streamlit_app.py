@@ -374,7 +374,7 @@ elif choice == "Transaction":
 
         # Send confirmation email
         try:
-            send_email(
+            send_email_with_pdf(
                 st.session_state.username,
                 "Workshop Payment Received 💰",
                 f"Hi,\n\nYour payment of ₹{st.session_state.last_price} was received successfully. "
