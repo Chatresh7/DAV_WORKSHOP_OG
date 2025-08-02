@@ -208,7 +208,7 @@ if "menu_redirect" in st.session_state:
 
 # Homepage for non-logged-in users
 if not st.session_state.user_logged_in and not st.session_state.admin_logged_in:
-    st.title("👋 Welcome to the EXCELERATE Workshop")
+    st.title("👋 Welcome to EXCELERATE")
 
     col1, col2 = st.columns(2)
     with col1:
