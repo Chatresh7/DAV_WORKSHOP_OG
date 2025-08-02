@@ -1,4 +1,4 @@
-# Updated streamlit_app.py with placeholder fix and rerun safety
+# Final updated streamlit_app.py with fixed QR and transaction image upload
 import streamlit as st
 import sqlite3
 import pandas as pd
@@ -151,8 +151,11 @@ elif choice == "Transaction":
         st.write(f"Team Size: {team_size}")
         st.write(f"\U0001F4B0 Amount to be paid: ₹{price}")
 
-        with open("workshop_app_streamlit/your_qr.png", "rb") as f:
-            st.image(f.read(), caption="Scan to Pay", width=250)  # Replace with your actual QR image file
+        try:
+            with open("your_qr.png", "rb") as f:
+                st.image(f.read(), caption="Scan to Pay", width=250)
+        except FileNotFoundError:
+            st.error("QR code image 'your_qr.png' not found.")
 
         with st.form("txn_form"):
             txn_id = st.text_input("Enter Transaction ID")
@@ -161,7 +164,7 @@ elif choice == "Transaction":
             if submit_txn:
                 if txn_id and screenshot:
                     image_bytes = screenshot.read()
-                    c.execute("REPLACE INTO transactions VALUES (?, ?, ?, ?)",
+                    c.execute("REPLACE INTO transactions (username, amount, txn_id, screenshot) VALUES (?, ?, ?, ?)",
                               (st.session_state.username, price, txn_id, image_bytes))
                     conn.commit()
                     st.success("Transaction recorded successfully.")
