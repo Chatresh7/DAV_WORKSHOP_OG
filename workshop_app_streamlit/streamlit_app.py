@@ -133,16 +133,14 @@ elif choice == "Team Selection":
             safe_rerun()
 
 # Transaction Page
-
-# Temporary DB schema fix
-try:
-    conn.execute("ALTER TABLE transactions ADD COLUMN screenshot BLOB;")
-    conn.commit()
-    st.success("✅ Screenshot column added successfully!")
-except sqlite3.OperationalError:
-    st.info("ℹ️ Screenshot column already exists.")
-
 elif choice == "Transaction":
+    # Temporary DB schema fix
+    try:
+        conn.execute("ALTER TABLE transactions ADD COLUMN screenshot BLOB;")
+        conn.commit()
+        st.success("✅ Screenshot column added successfully!")
+    except sqlite3.OperationalError:
+        st.info("ℹ️ Screenshot column already exists.")
     st.title("Transaction")
 
     team_cost = {
@@ -161,7 +159,7 @@ elif choice == "Transaction":
         st.write(f"\U0001F4B0 Amount to be paid: ₹{price}")
 
         try:
-            with open("workshop_app_streamlit/your_qr.png", "rb") as f:
+            with open("your_qr.png", "rb") as f:
                 st.image(f.read(), caption="Scan to Pay", width=250)
         except FileNotFoundError:
             st.error("QR code image 'your_qr.png' not found.")
