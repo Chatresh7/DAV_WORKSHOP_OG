@@ -52,24 +52,29 @@ if "username" not in st.session_state:
 if "admin_logged_in" not in st.session_state:
     st.session_state.admin_logged_in = False
 
+# Sidebar menu based on login and team registration status
 menu = ["Register", "Login"]
 
 if st.session_state.user_logged_in:
-    # Check if team details exist for this user
+    # Initialize DB cursor
     c = conn.cursor()
     c.execute("SELECT 1 FROM teams WHERE username=?", (st.session_state.username,))
     has_team = c.fetchone() is not None
+
+    # Debug: show in sidebar whether user has filled team details
+    st.sidebar.write("✅ Team Details Filled:", has_team)
 
     if has_team:
         menu = ["Team Selection", "Transaction", "Logout"]
     else:
         menu = ["Team Selection", "Logout"]
 
-if st.session_state.admin_logged_in:
+elif st.session_state.admin_logged_in:
     menu = ["Admin", "Logout"]
 
-
+# Sidebar navigation
 choice = st.sidebar.selectbox("Navigation", menu)
+
 
 # User Registration
 if choice == "Register":
