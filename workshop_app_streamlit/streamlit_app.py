@@ -243,14 +243,12 @@ elif choice == "Team Selection":
         st.session_state.clear_team_form = False
         safe_rerun()
 
-    submitted_success = False  # Flag for QR + email preview
+    submitted_success = False
 
     with st.form("team_form"):
         details = []
         for i in range(1, size + 1):
-            show_number = (size != 1)
-            label_suffix = f" {i}" if show_number else ""
-
+            label_suffix = f" {i}" if size != 1 else ""
             st.subheader("Your Details" if size == 1 else f"Member {i}")
             name = st.text_input(f"Name{label_suffix}", key=f"name_{i}")
             reg = st.text_input(f"Reg Number{label_suffix}", key=f"reg_{i}")
@@ -278,69 +276,24 @@ elif choice == "Team Selection":
                 c.execute(f"INSERT INTO teams VALUES ({placeholders})",
                           (st.session_state.username, team_size, *details, *[""] * (15 - len(details))))
                 conn.commit()
-
-                # ✅ Prepare team data
-                team_data = {
-                    "team_size": team_size,
-                    "members": []
-                }
-                for i in range(size):
-                    member = {
-                        "name": details[i * 5],
-                        "reg": details[i * 5 + 1],
-                        "year": details[i * 5 + 2],
-                        "branch": details[i * 5 + 3],
-                        "section": details[i * 5 + 4],
-                    }
-                    team_data["members"].append(member)
-
-                # ✅ Generate PDF
-                pdf_bytes = generate_team_pdf(team_data, st.session_state.username)
-                send_email_with_pdf(
-                    to_address=st.session_state.username,
-                    subject="Your Workshop Team Info",
-                    message_body="Hi! Please find attached your team details for the workshop.",
-                    pdf_bytes=pdf_bytes,
-                    filename="team_info.pdf"
-                )
-
-
-                # ✅ Send email with PDF
-                try:
-                    send_email_with_pdf(
-                        to_address=st.session_state.username,
-                        subject="Your Workshop Team Info",
-                        message_body="Hi! Please find attached your team details for the workshop.",
-                        pdf_bytes=pdf_bytes,
-                        filename="team_info.pdf"
-                    )
-                    st.success("📧 Team info PDF has been emailed to your registered address.")
-                except Exception as e:
-                    st.error(f"Failed to send email: {e}")
-
-                # ✅ Mark success so QR and messages show
                 submitted_success = True
 
-    # ✅ QR and success message OUTSIDE form
     if submitted_success:
         team_info = f"Team Leader: {details[0]} ({details[1]})\n"
         for i in range(1, size):
             team_info += f"Member {i+1}: {details[i*5]} ({details[i*5+1]})\n"
 
         qr_bytes = generate_team_qr(team_info)
-
         st.success("✅ Team saved successfully!")
         st.image(qr_bytes, caption="Your Team QR Code", width=250)
         st.download_button("📥 Download QR Code", data=qr_bytes, file_name="team_qr.png")
         st.info("Proceed to the Transaction tab to complete your registration.")
 
 
-
 # Transaction
 elif choice == "Transaction":
     st.title("Transaction")
 
-    # Make sure txn_success state exists
     if "txn_success" not in st.session_state:
         st.session_state.txn_success = False
 
@@ -395,22 +348,49 @@ elif choice == "Transaction":
     else:
         st.warning("⚠️ Please fill out team details first on the 'Team Selection' page.")
 
-    # ✅ After rerun - show WhatsApp join link and confirmation
     if st.session_state.txn_success:
         st.success("Transaction recorded successfully!")
 
-        # Send confirmation email
-        try:
-            send_email(
-                st.session_state.username,
-                "Workshop Payment Received 💰",
-                f"Hi,\n\nYour payment of ₹{st.session_state.last_price} was received successfully. "
-                f"Your transaction ID is: {st.session_state.last_txn_id}.\n\nThanks for registering!"
-            )
-        except Exception as e:
-            st.warning(f"📧 Email failed to send: {e}")
+        # Get full team data
+        c.execute("SELECT * FROM teams WHERE username=?", (st.session_state.username,))
+        team_row = c.fetchone()
+        if team_row:
+            team_size = team_row[1]
+            members = []
+            for i in range(1, 4):
+                name = team_row[2 + (i - 1) * 5]
+                reg = team_row[3 + (i - 1) * 5]
+                year = team_row[4 + (i - 1) * 5]
+                branch = team_row[5 + (i - 1) * 5]
+                section = team_row[6 + (i - 1) * 5]
+                if name and reg:
+                    members.append({
+                        "name": name,
+                        "reg": reg,
+                        "year": year,
+                        "branch": branch,
+                        "section": section
+                    })
 
-        # Show WhatsApp join button
+            team_data = {"team_size": team_size, "members": members}
+            pdf_bytes = generate_team_pdf(team_data, st.session_state.username)
+
+            try:
+                send_email_with_pdf(
+                    to_address=st.session_state.username,
+                    subject="Workshop Payment Received 💰",
+                    message_body=(
+                        f"Hi,\n\nYour payment of ₹{st.session_state.last_price} was received successfully. "
+                        f"Your transaction ID is: {st.session_state.last_txn_id}.\n\n"
+                        f"Attached is your team confirmation.\n\nThanks for registering!"
+                    ),
+                    pdf_bytes=pdf_bytes,
+                    filename="team_info.pdf"
+                )
+                st.success("📧 Confirmation email with team PDF sent.")
+            except Exception as e:
+                st.warning(f"📧 Email failed to send: {e}")
+
         st.markdown(
             """
             <a href="https://chat.whatsapp.com/CGE0UiKKPeu63xzZqs8sMW" target="_blank"
@@ -425,8 +405,8 @@ elif choice == "Transaction":
             unsafe_allow_html=True
         )
 
-        # Reset flag so it doesn't show again unless new txn is made
         st.session_state.txn_success = False
+
 
 
 
