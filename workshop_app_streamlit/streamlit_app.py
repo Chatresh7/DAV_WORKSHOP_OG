@@ -247,23 +247,42 @@ elif choice == "Admin" and st.session_state.admin_logged_in:
         st.markdown(f"**👤 Username:** `{username}`  \n**💸 Amount Paid:** ₹{amount}  \n**🔖 Transaction ID:** `{txn_id}`")
 
         if screenshot_blob:
-        # Convert image blob to base64 for browser preview
+        # Convert to base64
             b64 = base64.b64encode(screenshot_blob).decode()
-            file_ext = "png"  # Assuming PNG; adjust if needed
-            data_url = f"data:image/{file_ext};base64,{b64}"
+            file_ext = "png"
+            img_html = f'''
+            <style>
+            .tooltip-container {{
+                position: relative;
+                display: inline-block;
+            }}
+            .tooltip-container .tooltip-img {{
+                visibility: hidden;
+                width: 200px;
+                background-color: transparent;
+                text-align: center;
+                border-radius: 6px;
+                position: absolute;
+                z-index: 1;
+                bottom: 125%; 
+                left: 50%;
+                margin-left: -100px;
+            }}
+            .tooltip-container:hover .tooltip-img {{
+                visibility: visible;
+            }}
+            </style>
+            <div class="tooltip-container">
+                <span style="font-size: 22px; cursor: pointer;">👁️</span>
+                <div class="tooltip-img">
+                    <img src="data:image/{file_ext};base64,{b64}" width="200"/>
+                </div>
+            </div>
+            '''
 
-        # Show only 👁️ icon, which opens screenshot in new tab
-            st.markdown(
-                f'''
-                <a href="{data_url}" target="_blank" title="View Screenshot" style="text-decoration: none;">
-                    <span style="font-size: 22px;">👁️</span>
-                </a>
-                ''',
-                unsafe_allow_html=True
-            )
+            st.markdown(img_html, unsafe_allow_html=True)
         else:
             st.info("No screenshot uploaded.")
-
         st.markdown("---")
 
 
