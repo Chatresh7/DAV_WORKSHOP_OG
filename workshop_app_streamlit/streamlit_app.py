@@ -14,8 +14,8 @@ import altair as alt
 from fpdf import FPDF
 
 def send_email(to_address, subject, message_body):
-    sender_email = "hemishkonchada@gmail.com"
-    app_password = "bnjv faai ndmi sdck"
+    sender_email = "konchadachatresh.23.csd@anits.edu.in"
+    app_password = "idoo pzkz gdjr mkhj"
 
     msg = MIMEMultipart()
     msg["From"] = sender_email
