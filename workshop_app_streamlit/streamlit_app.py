@@ -120,14 +120,25 @@ elif choice == "Team Selection":
         details = []
         for i in range(1, size + 1):
             st.subheader("Your Details" if size == 1 else f"Member {i}")
-            name = st.text_input(f"Name {i}")
-            reg = st.text_input(f"Reg Number {i}")
-            year = st.text_input(f"Year {i}")
-            branch = st.text_input(f"Branch {i}")
-            section = st.text_input(f"Section {i}")
+            name = st.text_input(f"Name {i}", key=f"name_{i}")
+            reg = st.text_input(f"Reg Number {i}", key=f"reg_{i}")
+            year = st.text_input(f"Year {i}", key=f"year_{i}")
+            branch = st.text_input(f"Branch {i}", key=f"branch_{i}")
+            section = st.text_input(f"Section {i}", key=f"section_{i}")
             details.extend([name, reg, year, branch, section])
 
-        submit_team = st.form_submit_button("Submit Team")
+        col1, col2 = st.columns(2)
+        with col1:
+            submit_team = st.form_submit_button("Submit Team")
+        with col2:
+            clear_btn = st.form_submit_button("Clear")
+
+        if clear_btn:
+            for i in range(1, size + 1):
+                for field in ["name", "reg", "year", "branch", "section"]:
+                    st.session_state.pop(f"{field}_{i}", None)
+            safe_rerun()
+
         if submit_team:
             if not details[0].strip() or not details[1].strip() or not details[2].strip():
                 st.error("❌ Please fill at least the first member's Name, Reg Number, and Year.")
@@ -140,15 +151,6 @@ elif choice == "Team Selection":
                 conn.commit()
                 st.success("Team saved successfully. Redirecting to transaction page...")
                 safe_rerun()
-
-    st.markdown("---")
-    if st.button("❌ Clear All My Data"):
-        c = conn.cursor()
-        c.execute("DELETE FROM teams WHERE username=?", (st.session_state.username,))
-        c.execute("DELETE FROM transactions WHERE username=?", (st.session_state.username,))
-        conn.commit()
-        st.success("All your data has been cleared.")
-        safe_rerun()
 
 # Transaction
 elif choice == "Transaction":
