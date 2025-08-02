@@ -219,7 +219,15 @@ elif choice == "Transaction":
                     c.execute("REPLACE INTO transactions (username, amount, txn_id, screenshot) VALUES (?, ?, ?, ?)",
                               (st.session_state.username, price, txn_id, image_bytes))
                     conn.commit()
-                    st.success("Transaction recorded successfully.")
+                    st.session_state.txn_success = True
+                    safe_rerun()
+
+# Show WhatsApp link after transaction submission
+            if st.session_state.txn_success:
+                st.success("Transaction recorded successfully!")
+                st.markdown("[👉 Click here to join the WhatsApp Group](https://chat.whatsapp.com/CGE0UiKKPeu63xzZqs8sMW)")
+                st.session_state.txn_success = False
+
     else:
         st.warning("⚠️ Please fill out team details first on the 'Team Selection' page.")
 
