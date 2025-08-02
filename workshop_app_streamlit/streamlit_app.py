@@ -238,9 +238,9 @@ if not st.session_state.user_logged_in and not st.session_state.admin_logged_in:
                                 menu = ["Team Selection", "Logout"]
                             choice = st.sidebar.selectbox("Navigation", menu)
 
-                            elif st.session_state.admin_logged_in:
-                                menu = ["Admin", "Logout"]
-                                choice = st.sidebar.selectbox("Navigation", menu)
+                        elif st.session_state.admin_logged_in:
+                            menu = ["Admin", "Logout"]
+                            choice = st.sidebar.selectbox("Navigation", menu)
 
                     else:
                         st.error("Invalid credentials.")
