@@ -155,6 +155,8 @@ def safe_rerun():
         if "Session state" not in str(e):
             raise
 
+
+
 # Session state
 if "user_logged_in" not in st.session_state:
     st.session_state.user_logged_in = False
@@ -167,7 +169,27 @@ if "clear_team_form" not in st.session_state:
 if "txn_success" not in st.session_state:
     st.session_state.txn_success = False
 
-choice = None
+def get_sidebar_choice():
+    if st.session_state.user_logged_in:
+        c = conn.cursor()
+        c.execute("SELECT name1, reg1, year1 FROM teams WHERE username=?", (st.session_state.username,))
+        row = c.fetchone()
+        has_team = row and all(row)
+        if has_team:
+            menu = ["Team Selection", "Transaction", "Logout"]
+        else:
+            menu = ["Team Selection", "Logout"]
+        return st.sidebar.selectbox("Navigation", menu)
+
+    elif st.session_state.admin_logged_in:
+        menu = ["Admin", "Logout"]
+        return st.sidebar.selectbox("Navigation", menu)
+
+    return None
+
+# Set sidebar choice globally
+choice = get_sidebar_choice()
+
 
 # Homepage for non-logged-in users
 if not st.session_state.user_logged_in and not st.session_state.admin_logged_in:
@@ -226,24 +248,10 @@ if not st.session_state.user_logged_in and not st.session_state.admin_logged_in:
                         st.session_state.user_logged_in = True
                         st.session_state.username = username
                         st.success("Logged in successfully!")
-                        safe_rerun()
-                        if st.session_state.user_logged_in:
-                            c = conn.cursor()
-                            c.execute("SELECT name1, reg1, year1 FROM teams WHERE username=?", (st.session_state.username,))
-                            row = c.fetchone()
-                            has_team = row and all(row)
-                            if has_team:
-                                menu = ["Team Selection", "Transaction", "Logout"]
-                            else:
-                                menu = ["Team Selection", "Logout"]
-                            choice = st.sidebar.selectbox("Navigation", menu)
-
-                        elif st.session_state.admin_logged_in:
-                            menu = ["Admin", "Logout"]
-                            choice = st.sidebar.selectbox("Navigation", menu)
-
+                        safe_rerun()  # 🚨 This restarts the app, so don't put anything after it.
                     else:
                         st.error("Invalid credentials.")
+
 
     if st.session_state.form_view:
         st.button("🔙 Back", on_click=lambda: st.session_state.update(form_view=None))
