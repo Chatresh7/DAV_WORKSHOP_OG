@@ -135,44 +135,50 @@ elif choice == "Team Selection":
             safe_rerun()
 
 # Transaction Page
-# Transaction Page
 elif choice == "Transaction":
-    # Temporary DB schema fix
-    try:
-        conn.execute("ALTER TABLE transactions ADD COLUMN screenshot BLOB;")
-        conn.commit()
-        st.success("✅ Screenshot column added successfully!")
-    except sqlite3.OperationalError:
-        st.info("ℹ️ Screenshot column already exists.")
     st.title("Transaction")
 
+    # Define the team cost and corresponding QR image for each team size
     team_cost = {
         "Single (₹50)": 50,
         "Duo (₹80)": 80,
         "Trio (₹100)": 100
     }
 
+    qr_map = {
+        "Single (₹50)": "qr-code.png",
+        "Duo (₹80)": "qr-code (1).png",
+        "Trio (₹100)": "qr-code (2).png"
+    }
+
+    # Fetch the team size from the database for the logged-in user
     c = conn.cursor()
     c.execute("SELECT team_size FROM teams WHERE username=?", (st.session_state.username,))
     row = c.fetchone()
+
     if row:
         team_size = row[0]
-        price = team_cost[team_size]
+        price = team_cost.get(team_size)
+        qr_file = f"/mnt/data/{qr_map.get(team_size)}"
+
         st.write(f"Team Size: {team_size}")
-        st.write(f"\U0001F4B0 Amount to be paid: ₹{price}")
+        st.write(f"💰 Amount to be paid: ₹{price}")
 
+        # Show QR Code based on team size
         try:
-            with open("workshop_app_streamlit/your_qr.png", "rb") as f:
-                st.image(f.read(), caption="Scan to Pay", width=250)
+            with open(qr_file, "rb") as f:
+                st.image(f.read(), caption=f"Scan to Pay for {team_size}", width=250)
         except FileNotFoundError:
-            st.error("QR code image 'your_qr.png' not found.")
+            st.error(f"QR code image not found: {qr_file}")
 
+        # Transaction form
         with st.form("txn_form"):
             txn_id = st.text_input("Enter Transaction ID")
             valid_txn = bool(re.match(r"^T\d{22}$", txn_id)) if txn_id else False
 
             screenshot = st.file_uploader("Upload Payment Screenshot", type=["png", "jpg", "jpeg"])
             submit_txn = st.form_submit_button("Submit")
+
             if submit_txn:
                 if not valid_txn:
                     st.error("❌ Invalid Transaction ID format. It should start with 'T' followed by exactly 22 digits.")
@@ -180,12 +186,12 @@ elif choice == "Transaction":
                     st.error("❌ Please upload the transaction screenshot.")
                 else:
                     image_bytes = screenshot.read()
-                    c.execute("REPLACE INTO transactions (username, amount, txn_id, screenshot) VALUES (?, ?, ?, ?)",(st.session_state.username, price, txn_id, image_bytes))
+                    c.execute("REPLACE INTO transactions (username, amount, txn_id, screenshot) VALUES (?, ?, ?, ?)",
+                              (st.session_state.username, price, txn_id, image_bytes))
                     conn.commit()
                     st.success("Transaction recorded successfully.")
-
     else:
-        st.warning("Please fill team details first.")
+        st.warning("⚠️ Please fill out team details first on the 'Team Selection' page.")
 
 # Admin Panel
 elif choice == "Admin" and st.session_state.admin_logged_in:
