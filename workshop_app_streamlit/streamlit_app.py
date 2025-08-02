@@ -159,7 +159,7 @@ elif choice == "Transaction":
         st.write(f"\U0001F4B0 Amount to be paid: ₹{price}")
 
         try:
-            with open("workshop_app_streamlit/your_qr.png", "rb") as f:
+            with open("your_qr.png", "rb") as f:
                 st.image(f.read(), caption="Scan to Pay", width=250)
         except FileNotFoundError:
             st.error("QR code image 'your_qr.png' not found.")
@@ -190,9 +190,16 @@ elif choice == "Admin" and st.session_state.admin_logged_in:
     st.download_button("Download Registration CSV", reg_df.to_csv(index=False), "registrations.csv", "text/csv")
 
     st.subheader("Download Transaction Details")
-    txn_df = pd.read_sql_query("SELECT username, amount, txn_id, 'Uploaded' AS screenshot FROM transactions", conn)
+    txn_df = pd.read_sql_query("SELECT username, amount, txn_id, screenshot FROM transactions", conn)
     st.dataframe(txn_df)
     st.download_button("Download Transaction CSV", txn_df.to_csv(index=False), "transactions.csv", "text/csv")
+
+    st.subheader("Preview Uploaded Screenshots")
+    for i, row in txn_df.iterrows():
+        if row['screenshot']:
+            st.markdown(f"**Username:** {row['username']} | **Transaction ID:** {row['txn_id']}")
+            image = Image.open(io.BytesIO(row['screenshot']))
+            st.image(image, caption=f"Payment Screenshot ({row['username']})", width=300)
 
 # Logout for all
 elif choice == "Logout":
