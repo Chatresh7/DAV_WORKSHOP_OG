@@ -199,6 +199,9 @@ def get_sidebar_choice():
 #choice = get_sidebar_choice()
 choice = get_sidebar_choice()
 if "menu_redirect" in st.session_state:
+    if st.session_state.menu_redirect != choice:
+        # Set correct default in the selectbox and rerun
+        st.rerun()
     del st.session_state.menu_redirect
 
 
