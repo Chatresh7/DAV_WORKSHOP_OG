@@ -116,7 +116,7 @@ st.markdown(
 )
 
 # Handle navigation
-choice = st.experimental_get_query_params().get("nav", [None])[0]
+choice = st.st.query_params().get("nav", [None])[0]
 
 
 # Register
