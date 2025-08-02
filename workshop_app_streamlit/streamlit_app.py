@@ -53,10 +53,21 @@ if "admin_logged_in" not in st.session_state:
     st.session_state.admin_logged_in = False
 
 menu = ["Register", "Login"]
+
 if st.session_state.user_logged_in:
-    menu = ["Team Selection", "Transaction", "Logout"]
+    # Check if team details exist for this user
+    c = conn.cursor()
+    c.execute("SELECT 1 FROM teams WHERE username=?", (st.session_state.username,))
+    has_team = c.fetchone() is not None
+
+    if has_team:
+        menu = ["Team Selection", "Transaction", "Logout"]
+    else:
+        menu = ["Team Selection", "Logout"]
+
 if st.session_state.admin_logged_in:
     menu = ["Admin", "Logout"]
+
 
 choice = st.sidebar.selectbox("Navigation", menu)
 
