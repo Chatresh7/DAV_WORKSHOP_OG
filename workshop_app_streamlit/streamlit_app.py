@@ -141,14 +141,19 @@ elif choice == "Team Selection":
 
         submit_team = st.form_submit_button("Submit Team")
         if submit_team:
-            c = conn.cursor()
-            c.execute("DELETE FROM teams WHERE username=?", (st.session_state.username,))
-            placeholders = ",".join(["?"] * 17)
-            c.execute(f"INSERT INTO teams VALUES ({placeholders})",
-                      (st.session_state.username, team_size, *details, *[""] * (15 - len(details))))
-            conn.commit()
-            st.success("Team saved successfully. Redirecting to transaction page...")
-            safe_rerun()
+    # Validate first member's fields (name, reg, year at minimum)
+            if not details[0].strip() or not details[1].strip() or not details[2].strip():
+                st.error("❌ Please fill at least the first member's Name, Reg Number, and Year.")
+            else:
+                c = conn.cursor()
+                c.execute("DELETE FROM teams WHERE username=?", (st.session_state.username,))
+                placeholders = ",".join(["?"] * 17)
+                c.execute(f"INSERT INTO teams VALUES ({placeholders})",
+                  (st.session_state.username, team_size, *details, *[""] * (15 - len(details))))
+                conn.commit()
+                st.success("Team saved successfully. Redirecting to transaction page...")
+                safe_rerun()
+
 
 # Transaction Page
 elif choice == "Transaction":
