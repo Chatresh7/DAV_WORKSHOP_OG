@@ -129,7 +129,7 @@ if choice == "Register":
                             "Workshop Registration Confirmed ✅",
                             "Thank you for registering! You've successfully created an account in the Workshop Portal."
                         )
-                     except:
+                    except:
                         st.error("Error occurred while registering.")
 
 
