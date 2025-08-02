@@ -188,7 +188,12 @@ def get_sidebar_choice():
     return None
 
 # Set sidebar choice globally
-choice = get_sidebar_choice()
+#choice = get_sidebar_choice()
+if "menu_redirect" in st.session_state:
+    choice = st.session_state.menu_redirect
+    del st.session_state.menu_redirect
+else:
+    choice = get_sidebar_choice()
 
 
 # Homepage for non-logged-in users
