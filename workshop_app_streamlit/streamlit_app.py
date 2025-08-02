@@ -50,6 +50,8 @@ if "username" not in st.session_state:
     st.session_state.username = ""
 if "admin_logged_in" not in st.session_state:
     st.session_state.admin_logged_in = False
+if "clear_team_form" not in st.session_state:
+    st.session_state.clear_team_form = False
 
 # Sidebar menu based on login and team registration status
 menu = ["Register", "Login"]
@@ -116,6 +118,13 @@ elif choice == "Team Selection":
     size_map = {"Single (₹50)": 1, "Duo (₹80)": 2, "Trio (₹100)": 3}
     size = size_map[team_size]
 
+    if st.session_state.clear_team_form:
+        for i in range(1, 4):
+            for field in ["name", "reg", "year", "branch", "section"]:
+                st.session_state.pop(f"{field}_{i}", None)
+        st.session_state.clear_team_form = False
+        safe_rerun()
+
     with st.form("team_form"):
         details = []
         for i in range(1, size + 1):
@@ -134,10 +143,7 @@ elif choice == "Team Selection":
             clear_btn = st.form_submit_button("Clear")
 
         if clear_btn:
-            for i in range(1, size + 1):
-                for field in ["name", "reg", "year", "branch", "section"]:
-                    st.session_state.pop(f"{field}_{i}", None)
-            safe_rerun()
+            st.session_state.clear_team_form = True
 
         if submit_team:
             if not details[0].strip() or not details[1].strip() or not details[2].strip():
