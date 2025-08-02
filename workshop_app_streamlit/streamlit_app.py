@@ -242,25 +242,26 @@ elif choice == "Admin" and st.session_state.admin_logged_in:
     c = conn.cursor()
     c.execute("SELECT username, amount, txn_id, screenshot FROM transactions")
     txn_rows = c.fetchall()
-    for username, amount, txn_id, screenshot_blob in txn_rows:
+
+    for idx, (username, amount, txn_id, screenshot_blob) in enumerate(txn_rows):
         st.markdown(f"**👤 Username:** `{username}`  \n**💸 Amount Paid:** ₹{amount}  \n**🔖 Transaction ID:** `{txn_id}`")
 
         if screenshot_blob:
-            # Convert to base64 for hyperlink preview
-            img_base64 = base64.b64encode(screenshot_blob).decode()
-            image_data_url = f"data:image/png;base64,{img_base64}"
+        # Convert image to base64
+             b64 = base64.b64encode(screenshot_blob).decode()
+            file_ext = "png"  # assume png; you can enhance to detect extension
+            file_name = f"screenshot_{idx}.{file_ext}"
+            data_url = f"data:image/{file_ext};base64,{b64}"
 
-            # Display an eye icon with clickable preview
-            # Display only the eye icon, clickable
+        # Show clickable 👁️ icon
             st.markdown(
-                f'<a href="{image_data_url}" target="_blank" title="View Screenshot" style="text-decoration: none;">'
-                f'<span style="font-size:22px;">👁️</span></a>',
+                f'<a href="{data_url}" download="{file_name}" target="_blank" title="View Screenshot" style="text-decoration: none;">'
+                f'<span style="font-size: 22px;">👁️</span></a>',
                 unsafe_allow_html=True
             )
-
         else:
             st.info("No screenshot uploaded.")
-        st.markdown("---")
+            st.markdown("---")
 
     st.subheader("💨 Danger Zone: Wipe All Data")
     with st.form("wipe_form"):
