@@ -151,7 +151,7 @@ elif choice == "Transaction":
         st.write(f"Team Size: {team_size}")
         st.write(f"\U0001F4B0 Amount to be paid: ₹{price}")
 
-        with open("your_qr.png", "rb") as f:
+        with open("workshop_app_streamlit/your_qr.png", "rb") as f:
             st.image(f.read(), caption="Scan to Pay", width=250)  # Replace with your actual QR image file
 
         with st.form("txn_form"):
