@@ -129,7 +129,7 @@ elif choice == "Login":
 elif choice == "Team Selection":
     st.title("Team Selection")
     team_size = st.radio("Select Team Size", ["Single (₹50)", "Duo (₹80)", "Trio (₹100)"])
-    size_map = {"Single (₹50)": 1, "Duo (₹80)", "Trio (₹100)": 3}
+    size_map = {"Single (₹50)": 1, "Duo (₹80)":2, "Trio (₹100)": 3}
     size = size_map[team_size]
 
     if st.session_state.clear_team_form:
