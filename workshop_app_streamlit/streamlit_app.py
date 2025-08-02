@@ -9,18 +9,28 @@ import base64
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from email.mime.application import MIMEApplication
 import altair as alt
+from fpdf import FPDF
 
 
-def send_email(to_address, subject, message_body):
+
+def send_email_with_pdf(to_address, subject, message_body, pdf_bytes, filename):
     sender_email = "hemishkonchada@gmail.com"  # replace with your Gmail
-    app_password = "bnjv faai ndmi sdck"  # replace with the app password
+    app_password = "bnjv faai ndmi sdck"     # 16-char app password
 
     msg = MIMEMultipart()
     msg["From"] = sender_email
     msg["To"] = to_address
     msg["Subject"] = subject
+
+    # Add text
     msg.attach(MIMEText(message_body, "plain"))
+
+    # Attach PDF
+    part = MIMEApplication(pdf_bytes.read(), Name=filename)
+    part['Content-Disposition'] = f'attachment; filename="{filename}"'
+    msg.attach(part)
 
     try:
         with smtplib.SMTP("smtp.gmail.com", 587) as server:
@@ -39,6 +49,35 @@ def generate_team_qr(data: str):
     buf = io.BytesIO()
     img.save(buf, format="PNG")
     return buf.getvalue()
+def generate_team_pdf(team_data, username):
+    pdf = FPDF()
+    pdf.add_page()
+    pdf.set_font("Arial", size=12)
+
+    pdf.cell(200, 10, txt="Workshop Team Details", ln=True, align="C")
+    pdf.ln(10)
+
+    pdf.cell(200, 10, txt=f"Username (Email): {username}", ln=True)
+    pdf.cell(200, 10, txt=f"Team Size: {team_data['team_size']}", ln=True)
+    pdf.ln(5)
+
+    for i, member in enumerate(team_data["members"], start=1):
+        title = "Team Leader" if i == 1 else f"Member {i}"
+        pdf.set_font("Arial", "B", size=12)
+        pdf.cell(200, 10, txt=title, ln=True)
+        pdf.set_font("Arial", size=12)
+        pdf.cell(200, 8, txt=f"Name: {member['name']}", ln=True)
+        pdf.cell(200, 8, txt=f"Reg No: {member['reg']}", ln=True)
+        pdf.cell(200, 8, txt=f"Year: {member['year']}", ln=True)
+        pdf.cell(200, 8, txt=f"Branch: {member['branch']}", ln=True)
+        pdf.cell(200, 8, txt=f"Section: {member['section']}", ln=True)
+        pdf.ln(4)
+
+    pdf_output = io.BytesIO()
+    pdf.output(pdf_output)
+    pdf_output.seek(0)
+    return pdf_output
+
 
 
 st.set_page_config(page_title="Workshop Portal", layout="centered")
@@ -182,7 +221,7 @@ elif choice == "Team Selection":
         st.session_state.clear_team_form = False
         safe_rerun()
 
-    submitted_success = False  # flag to handle QR generation and message
+    submitted_success = False  # Flag for QR + email preview
 
     with st.form("team_form"):
         details = []
@@ -217,7 +256,40 @@ elif choice == "Team Selection":
                 c.execute(f"INSERT INTO teams VALUES ({placeholders})",
                           (st.session_state.username, team_size, *details, *[""] * (15 - len(details))))
                 conn.commit()
-                submitted_success = True  # trigger QR logic
+
+                # ✅ Prepare team data
+                team_data = {
+                    "team_size": team_size,
+                    "members": []
+                }
+                for i in range(size):
+                    member = {
+                        "name": details[i * 5],
+                        "reg": details[i * 5 + 1],
+                        "year": details[i * 5 + 2],
+                        "branch": details[i * 5 + 3],
+                        "section": details[i * 5 + 4],
+                    }
+                    team_data["members"].append(member)
+
+                # ✅ Generate PDF
+                pdf_bytes = generate_team_pdf(team_data, st.session_state.username)
+
+                # ✅ Send email with PDF
+                try:
+                    send_email_with_pdf(
+                        to_address=st.session_state.username,
+                        subject="Your Workshop Team Info",
+                        message_body="Hi! Please find attached your team details for the workshop.",
+                        pdf_bytes=pdf_bytes,
+                        filename="team_info.pdf"
+                    )
+                    st.success("📧 Team info PDF has been emailed to your registered address.")
+                except Exception as e:
+                    st.error(f"Failed to send email: {e}")
+
+                # ✅ Mark success so QR and messages show
+                submitted_success = True
 
     # ✅ QR and success message OUTSIDE form
     if submitted_success:
@@ -231,6 +303,7 @@ elif choice == "Team Selection":
         st.image(qr_bytes, caption="Your Team QR Code", width=250)
         st.download_button("📥 Download QR Code", data=qr_bytes, file_name="team_qr.png")
         st.info("Proceed to the Transaction tab to complete your registration.")
+
 
 
 # Transaction
