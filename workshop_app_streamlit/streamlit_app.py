@@ -9,6 +9,8 @@ import base64
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+import altair as alt
+
 
 def send_email(to_address, subject, message_body):
     sender_email = "hemishkonchada@gmail.com"  # replace with your Gmail
@@ -311,6 +313,46 @@ elif choice == "Admin" and st.session_state.admin_logged_in:
     st.title("Admin Panel")
     st.subheader("Download Registration Details")
     reg_df = pd.read_sql_query("SELECT * FROM teams", conn)
+    st.subheader("🔍 Filter Registrations")
+
+    year_filter = st.selectbox("Filter by Year", options=["All", "2", "3", "4"])
+    branch_filter = st.selectbox("Filter by Branch", options=["All", "CSD", "CSE", "CSM", "IT"])
+    section_filter = st.selectbox("Filter by Section", options=["All", "A", "B", "C", "D"])
+    team_size_filter = st.selectbox("Filter by Team Size", options=["All", "Single (₹50)", "Duo (₹80)", "Trio (₹100)"])
+
+    filtered_df = reg_df.copy()
+    if year_filter != "All":
+        filtered_df = filtered_df[filtered_df["year1"] == year_filter]
+    if branch_filter != "All":
+        filtered_df = filtered_df[filtered_df["branch1"] == branch_filter]
+    if section_filter != "All":
+        filtered_df = filtered_df[filtered_df["section1"] == section_filter]
+    if team_size_filter != "All":
+        filtered_df = filtered_df[filtered_df["team_size"] == team_size_filter]
+
+    st.dataframe(filtered_df)
+    st.subheader("📊 Summary Stats")
+    total_teams = len(reg_df)
+    total_amount = sum({"Single (₹50)": 50, "Duo (₹80)": 80, "Trio (₹100)": 100}.get(x, 0) for x in reg_df["team_size"])
+    team_size_counts = reg_df["team_size"].value_counts()
+
+    st.markdown(f"- Total Teams: **{total_teams}**")
+    st.markdown(f"- Total Amount Collected: **₹{total_amount}**")
+    for k, v in team_size_counts.items():
+        st.markdown(f"- {k}: {v} teams")
+    st.subheader("📈 Branch-wise Registration Chart")
+    chart_df = reg_df["branch1"].value_counts().reset_index()
+    chart_df.columns = ["Branch", "Count"]
+
+    chart = alt.Chart(chart_df).mark_bar().encode(
+        x=alt.X("Branch", sort="-y"),
+        y="Count",
+        tooltip=["Branch", "Count"]
+    ).properties(width=500)
+
+    st.altair_chart(chart)
+
+
     st.dataframe(reg_df)
     st.download_button("Download Registration CSV", reg_df.to_csv(index=False), "registrations.csv", "text/csv")
 
