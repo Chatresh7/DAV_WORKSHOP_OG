@@ -228,8 +228,17 @@ elif choice == "Transaction":
 # Show WhatsApp link after transaction submission
             if st.session_state.txn_success:
                 st.success("Transaction recorded successfully!")
-                st.markdown("[👉 Click here to join the WhatsApp Group](https://chat.whatsapp.com/CGE0UiKKPeu63xzZqs8sMW)")
+                st.markdown(
+                    '''
+                    <a href="https://chat.whatsapp.com/CGE0UiKKPeu63xzZqs8sMW" target="_blank" style="text-decoration: none;">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="WhatsApp" width="24" style="vertical-align: middle; margin-right: 8px;">
+                        <span style="font-size: 18px; vertical-align: middle;">Join WhatsApp Group</span>
+                    </a>
+                    ''',
+                    unsafe_allow_html=True
+                )
                 st.session_state.txn_success = False
+
 
     else:
         st.warning("⚠️ Please fill out team details first on the 'Team Selection' page.")
