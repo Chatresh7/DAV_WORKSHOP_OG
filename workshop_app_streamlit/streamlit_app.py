@@ -58,8 +58,9 @@ menu = ["Register", "Login"]
 
 if st.session_state.user_logged_in:
     c = conn.cursor()
-    c.execute("SELECT 1 FROM teams WHERE username=?", (st.session_state.username,))
-    has_team = c.fetchone() is not None
+    c.execute("SELECT name1, reg1, year1 FROM teams WHERE username=?", (st.session_state.username,))
+    row = c.fetchone()
+    has_team = row and all(row)
     if has_team:
         menu = ["Team Selection", "Transaction", "Logout"]
     else:
