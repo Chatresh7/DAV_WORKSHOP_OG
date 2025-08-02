@@ -13,6 +13,25 @@ from email.mime.application import MIMEApplication
 import altair as alt
 from fpdf import FPDF
 
+def send_email(to_address, subject, message_body):
+    sender_email = "hemishkonchada@gmail.com"
+    app_password = "bnjv faai ndmi sdck"
+
+    msg = MIMEMultipart()
+    msg["From"] = sender_email
+    msg["To"] = to_address
+    msg["Subject"] = subject
+
+    msg.attach(MIMEText(message_body, "plain"))
+
+    try:
+        with smtplib.SMTP("smtp.gmail.com", 587) as server:
+            server.starttls()
+            server.login(sender_email, app_password)
+            server.send_message(msg)
+        print("✅ Email sent successfully.")
+    except Exception as e:
+        print("❌ Email failed:", e)
 
 
 def send_email_with_pdf(to_address, subject, message_body, pdf_bytes, filename):
@@ -382,7 +401,7 @@ elif choice == "Transaction":
 
         # Send confirmation email
         try:
-            send_email_with_pdf(
+            send_email(
                 st.session_state.username,
                 "Workshop Payment Received 💰",
                 f"Hi,\n\nYour payment of ₹{st.session_state.last_price} was received successfully. "
