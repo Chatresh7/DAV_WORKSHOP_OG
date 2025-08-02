@@ -6,6 +6,28 @@ import io
 from PIL import Image
 import re
 import base64
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+
+def send_email(to_address, subject, message_body):
+    sender_email = "hemishkonchada@gmail.com"  # replace with your Gmail
+    app_password = "bnjv faai ndmi sdck"  # replace with the app password
+
+    msg = MIMEMultipart()
+    msg["From"] = sender_email
+    msg["To"] = to_address
+    msg["Subject"] = subject
+    msg.attach(MIMEText(message_body, "plain"))
+
+    try:
+        with smtplib.SMTP("smtp.gmail.com", 587) as server:
+            server.starttls()
+            server.login(sender_email, app_password)
+            server.send_message(msg)
+        print("✅ Email sent successfully.")
+    except Exception as e:
+        print("❌ Email failed:", e)
 
 st.set_page_config(page_title="Workshop Portal", layout="centered")
 
@@ -102,7 +124,12 @@ if choice == "Register":
                         c.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username, password))
                         conn.commit()
                         st.success("Registered successfully. Please login.")
-                    except:
+                        send_email(
+                            username,
+                            "Workshop Registration Confirmed ✅",
+                            "Thank you for registering! You've successfully created an account in the Workshop Portal."
+                        )
+                     except:
                         st.error("Error occurred while registering.")
 
 
@@ -228,6 +255,12 @@ elif choice == "Transaction":
 # Show WhatsApp link after transaction submission
             if st.session_state.txn_success:
                 st.success("Transaction recorded successfully!")
+                send_email(
+                    st.session_state.username,
+                    "Workshop Payment Received 💰",
+                    f"Hi,\n\nYour payment of ₹{price} was received successfully. Your transaction ID is: {txn_id}.\n\nThanks for registering!"
+                )
+
                 st.markdown(
                     """
                     <a href="https://chat.whatsapp.com/CGE0UiKKPeu63xzZqs8sMW" target="_blank"
@@ -241,7 +274,7 @@ elif choice == "Transaction":
                     """,
                     unsafe_allow_html=True
                 )
-                st.session_state.txn_success = False
+                st.session_state.txn_success = True
 
 
 
