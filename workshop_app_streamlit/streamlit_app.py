@@ -437,37 +437,31 @@ elif choice == "Transaction":
             screenshot = st.file_uploader("Upload Payment Screenshot", type=["png", "jpg", "jpeg"])
             submit_txn = st.form_submit_button("Submit")
 
-            with st.form("txn_form"):
-                txn_id = st.text_input("Enter Transaction ID")
-                valid_txn = bool(re.match(r"^T\d{22}$", txn_id)) if txn_id else False
-                screenshot = st.file_uploader("Upload Payment Screenshot", type=["png", "jpg", "jpeg"])
-                submit_txn = st.form_submit_button("Submit")
+            if submit_txn:
+                if not valid_txn:
+                    st.error("❌ Invalid Transaction ID format. It should start with 'T' followed by exactly 22 digits.")
+                elif not screenshot:
+                    st.error("❌ Please upload the transaction screenshot.")
+                else:
+                    # ✅ Check if the transaction ID already exists in the database
+                    c.execute("SELECT txn_id FROM transactions WHERE txn_id = ?", (txn_id,))
+                    existing_txn = c.fetchone()
 
-                if submit_txn:
-                    if not valid_txn:
-                        st.error("❌ Invalid Transaction ID format. It should start with 'T' followed by exactly 22 digits.")
-                    elif not screenshot:
-                        st.error("❌ Please upload the transaction screenshot.")
+                    if existing_txn:
+                        st.error("❌ Transaction ID already exists. Please check your entry.")
                     else:
-            # ✅ Check if the transaction ID already exists in the database
-                        c.execute("SELECT txn_id FROM transactions WHERE txn_id = ?", (txn_id,))
-                        existing_txn = c.fetchone()
-
-                        if existing_txn:
-                            st.error("❌ Transaction ID already exists. Please check your entry.")
-                        else:
-                # ✅ Insert the new transaction if ID is unique
-                            image_bytes = screenshot.read()
-                            c.execute(
-                                "REPLACE INTO transactions (username, amount, txn_id, screenshot) VALUES (?, ?, ?, ?)",
-                                (st.session_state.username, price, txn_id, image_bytes)
-                            )
-                            conn.commit()
-                            st.session_state.last_txn_id = txn_id
-                            st.session_state.last_price = price
-                            st.session_state.txn_success = True
-                            st.success("✅ Transaction submitted successfully.")
-                            safe_rerun()
+                        # ✅ Insert the new transaction if ID is unique
+                        image_bytes = screenshot.read()
+                        c.execute(
+                            "REPLACE INTO transactions (username, amount, txn_id, screenshot) VALUES (?, ?, ?, ?)",
+                            (st.session_state.username, price, txn_id, image_bytes)
+                        )
+                        conn.commit()
+                        st.session_state.last_txn_id = txn_id
+                        st.session_state.last_price = price
+                        st.session_state.txn_success = True
+                        st.success("✅ Transaction submitted successfully.")
+                        safe_rerun()
     else:
         st.warning("⚠️ Please fill out team details first on the 'Team Selection' page.")
 
@@ -532,7 +526,6 @@ elif choice == "Transaction":
         )
 
         st.session_state.txn_success = False
-
 
 
 
