@@ -154,6 +154,14 @@ elif choice == "Team Selection":
                 conn.commit()
                 st.success("Team saved successfully. Redirecting to transaction page...")
                 safe_rerun()
+    st.markdown("---")
+    if st.button("❌ Clear All My Data"):
+        c = conn.cursor()
+        c.execute("DELETE FROM teams WHERE username=?", (st.session_state.username,))
+        c.execute("DELETE FROM transactions WHERE username=?", (st.session_state.username,))
+        conn.commit()
+        st.success("All your data has been cleared.")
+        safe_rerun()
 
 
 # Transaction Page
