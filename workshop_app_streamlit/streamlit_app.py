@@ -76,10 +76,9 @@ def generate_team_pdf(team_data, username):
         pdf.cell(200, 8, txt=clean_text(f"Section: {member['section']}"), ln=True)
         pdf.ln(4)
 
-    pdf_output = io.BytesIO()
-    pdf.output(pdf_output)
-    pdf_output.seek(0)
-    return pdf_output
+    pdf_output = pdf.output(dest="S").encode("latin1")
+    return io.BytesIO(pdf_output)
+
 
 
 
