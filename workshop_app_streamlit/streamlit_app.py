@@ -171,7 +171,7 @@ choice = None
 
 # Homepage for non-logged-in users
 if not st.session_state.user_logged_in and not st.session_state.admin_logged_in:
-    st.title("👋 Welcome to the Workshop Portal")
+    st.title("👋 Welcome to the EXCELERATE Workshop")
 
     col1, col2 = st.columns(2)
     with col1:
