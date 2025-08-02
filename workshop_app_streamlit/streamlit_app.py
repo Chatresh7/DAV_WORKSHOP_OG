@@ -74,49 +74,7 @@ if st.session_state.user_logged_in:
 elif st.session_state.admin_logged_in:
     menu = ["Admin", "Logout"]
 
-#choice = st.sidebar.selectbox("Navigation", menu)
-# Top Navigation Bar
-st.markdown(
-    """
-    <style>
-    .nav-container {
-        display: flex;
-        justify-content: center;
-        gap: 20px;
-        margin-bottom: 20px;
-        flex-wrap: wrap;
-    }
-    .nav-btn button {
-        background-color: #f0f0f0;
-        border: none;
-        padding: 10px 20px;
-        font-size: 16px;
-        cursor: pointer;
-        border-radius: 8px;
-    }
-    .nav-btn button:hover {
-        background-color: #d0d0d0;
-    }
-    </style>
-    <div class="nav-container">
-        <form action="" method="post" class="nav-btn"><button name="nav" type="submit" value="Register">Register</button></form>
-        <form action="" method="post" class="nav-btn"><button name="nav" type="submit" value="Login">Login</button></form>
-        """ +
-        ("""
-        <form action="" method="post" class="nav-btn"><button name="nav" type="submit" value="Team Selection">Team</button></form>
-        <form action="" method="post" class="nav-btn"><button name="nav" type="submit" value="Transaction">Transaction</button></form>
-        <form action="" method="post" class="nav-btn"><button name="nav" type="submit" value="Logout">Logout</button></form>
-        """ if st.session_state.user_logged_in else "") +
-        ("""
-        <form action="" method="post" class="nav-btn"><button name="nav" type="submit" value="Admin">Admin</button></form>
-        <form action="" method="post" class="nav-btn"><button name="nav" type="submit" value="Logout">Logout</button></form>
-        """ if st.session_state.admin_logged_in else "") +
-    "</div>",
-    unsafe_allow_html=True,
-)
-
-# Handle navigation
-choice = st.experimental_get_query_params().get("nav", [None])[0]
+choice = st.sidebar.selectbox("Navigation", menu)
 
 
 # Register
