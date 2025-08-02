@@ -1,4 +1,4 @@
-# Updated streamlit_app.py with placeholder fix
+# Updated streamlit_app.py with placeholder fix and rerun safety
 import streamlit as st
 import sqlite3
 import pandas as pd
@@ -33,6 +33,14 @@ def init_db():
     return conn
 
 conn = init_db()
+
+# Safe rerun function
+def safe_rerun():
+    try:
+        st.experimental_rerun()
+    except RuntimeError as e:
+        if "Session state" not in str(e):
+            raise
 
 # Session state
 if "user_logged_in" not in st.session_state:
@@ -80,7 +88,7 @@ elif choice == "Login":
             if username == "admin" and password == "admin123":
                 st.session_state.admin_logged_in = True
                 st.success("Admin login successful.")
-                st.experimental_rerun()
+                safe_rerun()
             else:
                 c = conn.cursor()
                 c.execute("SELECT * FROM users WHERE username=? AND password=?", (username, password))
@@ -88,7 +96,7 @@ elif choice == "Login":
                     st.session_state.user_logged_in = True
                     st.session_state.username = username
                     st.success("Logged in successfully!")
-                    st.experimental_rerun()
+                    safe_rerun()
                 else:
                     st.error("Invalid credentials.")
 
@@ -122,7 +130,7 @@ elif choice == "Team Selection":
                       (st.session_state.username, team_size, *details, *[""] * (15 - len(details))))
             conn.commit()
             st.success("Team saved successfully. Redirecting to transaction page...")
-            st.experimental_rerun()
+            safe_rerun()
 
 # Transaction Page
 elif choice == "Transaction":
@@ -143,7 +151,8 @@ elif choice == "Transaction":
         st.write(f"Team Size: {team_size}")
         st.write(f"\U0001F4B0 Amount to be paid: ₹{price}")
 
-        st.image("your_qr.png", caption="Scan to Pay", width=250)  # Replace with your actual QR image file
+        with open("your_qr.png", "rb") as f:
+            st.image(f.read(), caption="Scan to Pay", width=250)  # Replace with your actual QR image file
 
         with st.form("txn_form"):
             txn_id = st.text_input("Enter Transaction ID")
@@ -181,4 +190,4 @@ elif choice == "Logout":
     st.session_state.admin_logged_in = False
     st.session_state.username = ""
     st.success("Logged out successfully.")
-    st.experimental_rerun()
+    safe_rerun()
