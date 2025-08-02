@@ -3,9 +3,9 @@ import sqlite3
 import pandas as pd
 import qrcode
 import io
+from PIL import Image
 import re
 import base64
-from PIL import Image
 
 st.set_page_config(page_title="Workshop Portal", layout="centered")
 
@@ -35,6 +35,13 @@ def init_db():
 
 conn = init_db()
 
+# Email validation function
+def is_valid_email(email):
+    pattern = r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$"
+    return re.match(pattern, email) is not None
+
+
+# Safe rerun function
 def safe_rerun():
     try:
         st.rerun()
@@ -42,7 +49,7 @@ def safe_rerun():
         if "Session state" not in str(e):
             raise
 
-# Session State
+# Session state
 if "user_logged_in" not in st.session_state:
     st.session_state.user_logged_in = False
 if "username" not in st.session_state:
@@ -51,96 +58,121 @@ if "admin_logged_in" not in st.session_state:
     st.session_state.admin_logged_in = False
 if "clear_team_form" not in st.session_state:
     st.session_state.clear_team_form = False
-if "nav" not in st.session_state:
-    st.session_state.nav = "Register"
 
-# Top Nav Buttons
-nav_col = st.columns(5)
-with nav_col[0]:
-    if st.button("Register"):
-        st.session_state.nav = "Register"
-with nav_col[1]:
-    if st.button("Login"):
-        st.session_state.nav = "Login"
+# Sidebar menu based on login and team registration status
+menu = ["Register", "Login"]
+
 if st.session_state.user_logged_in:
-    with nav_col[2]:
-        if st.button("Team"):
-            st.session_state.nav = "Team Selection"
-    with nav_col[3]:
-        if st.button("Transaction"):
-            st.session_state.nav = "Transaction"
-    with nav_col[4]:
-        if st.button("Logout"):
-            st.session_state.user_logged_in = False
-            st.session_state.username = ""
-            st.session_state.nav = "Login"
-            st.success("Logged out successfully.")
-            safe_rerun()
+    c = conn.cursor()
+    c.execute("SELECT name1, reg1, year1 FROM teams WHERE username=?", (st.session_state.username,))
+    row = c.fetchone()
+    has_team = row and all(row)
+    if has_team:
+        menu = ["Team Selection", "Transaction", "Logout"]
+    else:
+        menu = ["Team Selection", "Logout"]
 elif st.session_state.admin_logged_in:
-    with nav_col[2]:
-        if st.button("Admin"):
-            st.session_state.nav = "Admin"
-    with nav_col[3]:
-        if st.button("Logout"):
-            st.session_state.admin_logged_in = False
-            st.session_state.nav = "Login"
-            st.success("Logged out successfully.")
-            safe_rerun()
+    menu = ["Admin", "Logout"]
 
-choice = st.session_state.nav
+#choice = st.sidebar.selectbox("Navigation", menu)
+# Top Navigation Bar
+st.markdown(
+    """
+    <style>
+    .nav-container {
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+    }
+    .nav-btn button {
+        background-color: #f0f0f0;
+        border: none;
+        padding: 10px 20px;
+        font-size: 16px;
+        cursor: pointer;
+        border-radius: 8px;
+    }
+    .nav-btn button:hover {
+        background-color: #d0d0d0;
+    }
+    </style>
+    <div class="nav-container">
+        <form action="" method="post" class="nav-btn"><button name="nav" type="submit" value="Register">Register</button></form>
+        <form action="" method="post" class="nav-btn"><button name="nav" type="submit" value="Login">Login</button></form>
+        """ +
+        ("""
+        <form action="" method="post" class="nav-btn"><button name="nav" type="submit" value="Team Selection">Team</button></form>
+        <form action="" method="post" class="nav-btn"><button name="nav" type="submit" value="Transaction">Transaction</button></form>
+        <form action="" method="post" class="nav-btn"><button name="nav" type="submit" value="Logout">Logout</button></form>
+        """ if st.session_state.user_logged_in else "") +
+        ("""
+        <form action="" method="post" class="nav-btn"><button name="nav" type="submit" value="Admin">Admin</button></form>
+        <form action="" method="post" class="nav-btn"><button name="nav" type="submit" value="Logout">Logout</button></form>
+        """ if st.session_state.admin_logged_in else "") +
+    "</div>",
+    unsafe_allow_html=True,
+)
 
-# Register & Login
-if choice in ["Register", "Login"]:
-    st.title("Welcome to the Portal")
-    col1, col2 = st.columns(2)
+# Handle navigation
+choice = st.st.query_params().get("nav", [None])[0]
 
-    with col1:
-        st.subheader("Register")
-        with st.form("register_form"):
-            username = st.text_input("Email (used as username)", key="reg_user")
-            password = st.text_input("Password", type="password", key="reg_pass")
-            register_btn = st.form_submit_button("Register")
-            if register_btn:
-                if username and password:
-                    if not re.match(r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$", username):
-                        st.error("Invalid email format.")
-                    else:
-                        c = conn.cursor()
-                        c.execute("SELECT * FROM users WHERE username=?", (username,))
-                        if c.fetchone():
-                            st.error("User already exists.")
-                        else:
-                            c.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username, password))
-                            conn.commit()
-                            st.success("Registration successful. Please login.")
 
-    with col2:
-        st.subheader("Login")
-        with st.form("login_form"):
-            login_user = st.text_input("Email", key="log_user")
-            login_pass = st.text_input("Password", type="password", key="log_pass")
-            login_btn = st.form_submit_button("Login")
-            if login_btn:
-                if login_user == "admin" and login_pass == "admin123":
-                    st.session_state.admin_logged_in = True
-                    st.success("Admin login successful.")
+# Register
+if choice == "Register":
+    st.title("User Registration")
+    with st.form("register_form"):
+        username = st.text_input("Email ID (will be your username)")
+        password = st.text_input("Password", type="password")
+        submitted = st.form_submit_button("Register")
+        if submitted:
+            if not username or not password:
+                st.error("All fields are required.")
+            elif not is_valid_email(username):
+                st.error("Please enter a valid email address.")
+            else:
+                c = conn.cursor()
+                c.execute("SELECT 1 FROM users WHERE username=?", (username,))
+                if c.fetchone():
+                    st.error("This email is already registered. Please login.")
+                else:
+                    try:
+                        c.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username, password))
+                        conn.commit()
+                        st.success("Registered successfully. Please login.")
+                    except:
+                        st.error("Error occurred while registering.")
+
+
+# Login
+elif choice == "Login":
+    st.title("Login")
+    with st.form("login_form"):
+        username = st.text_input("Email ID")
+        password = st.text_input("Password", type="password")
+        login_btn = st.form_submit_button("Login")
+        if login_btn:
+            if username == "admin" and password == "admin123":
+                st.session_state.admin_logged_in = True
+                st.success("Admin login successful.")
+                safe_rerun()
+            else:
+                c = conn.cursor()
+                c.execute("SELECT * FROM users WHERE username=? AND password=?", (username, password))
+                if c.fetchone():
+                    st.session_state.user_logged_in = True
+                    st.session_state.username = username
+                    st.success("Logged in successfully!")
                     safe_rerun()
                 else:
-                    c = conn.cursor()
-                    c.execute("SELECT * FROM users WHERE username=? AND password=?", (login_user, login_pass))
-                    if c.fetchone():
-                        st.session_state.user_logged_in = True
-                        st.session_state.username = login_user
-                        st.success("Logged in successfully!")
-                        safe_rerun()
-                    else:
-                        st.error("Invalid credentials.")
+                    st.error("Invalid credentials.")
 
-# Team Selection
+
 elif choice == "Team Selection":
     st.title("Team Selection")
-    team_size = st.radio("Select Team Size", ["Single (\u20B950)", "Duo (\u20B980)", "Trio (\u20B9100)"])
-    size_map = {"Single (\u20B950)": 1, "Duo (\u20B980)": 2, "Trio (\u20B9100)": 3}
+    team_size = st.radio("Select Team Size", ["Single (₹50)", "Duo (₹80)", "Trio (₹100)"])
+    size_map = {"Single (₹50)": 1, "Duo (₹80)":2, "Trio (₹100)": 3}
     size = size_map[team_size]
 
     if st.session_state.clear_team_form:
@@ -153,14 +185,16 @@ elif choice == "Team Selection":
     with st.form("team_form"):
         details = []
         for i in range(1, size + 1):
-            is_single = size == 1
-            label_prefix = "Your" if is_single else f"Member {i}"
-            st.subheader(label_prefix + " Details")
-            name = st.text_input("Name" if is_single else f"Name {i}", key=f"name_{i}")
-            reg = st.text_input("Reg Number" if is_single else f"Reg Number {i}", key=f"reg_{i}")
-            year = st.selectbox("Year" if is_single else f"Year {i}", ["1", "2", "3", "4"], key=f"year_{i}")
-            branch = st.selectbox("Branch" if is_single else f"Branch {i}", ["CSD", "CSE", "CSM", "IT"], key=f"branch_{i}")
-            section = st.selectbox("Section" if is_single else f"Section {i}", ["A", "B", "C", "D"], key=f"section_{i}")
+            # No number for single, numbered for duo/trio
+            show_number = (size != 1)
+            label_suffix = f" {i}" if show_number else ""
+
+            st.subheader("Your Details" if size == 1 else f"Member {i}")
+            name = st.text_input(f"Name{label_suffix}", key=f"name_{i}")
+            reg = st.text_input(f"Reg Number{label_suffix}", key=f"reg_{i}")
+            year = st.selectbox(f"Year{label_suffix}", options=["1", "2", "3", "4"], key=f"year_{i}")
+            branch = st.selectbox(f"Branch{label_suffix}", options=["CSD", "CSE", "CSM", "IT"], key=f"branch_{i}")
+            section = st.selectbox(f"Section{label_suffix}", options=["A", "B", "C", "D"], key=f"section_{i}")
             details.extend([name, reg, year, branch, section])
 
         col1, col2 = st.columns(2)
@@ -174,21 +208,27 @@ elif choice == "Team Selection":
 
         if submit_team:
             if not details[0].strip() or not details[1].strip() or not details[2].strip():
-                st.error("Please fill at least the first member's Name, Reg Number, and Year.")
+                st.error("❌ Please fill at least the first member's Name, Reg Number, and Year.")
             else:
                 c = conn.cursor()
                 c.execute("DELETE FROM teams WHERE username=?", (st.session_state.username,))
                 placeholders = ",".join(["?"] * 17)
-                c.execute(f"INSERT INTO teams VALUES ({placeholders})", (st.session_state.username, team_size, *details, *[""] * (15 - len(details))))
+                c.execute(f"INSERT INTO teams VALUES ({placeholders})",
+                          (st.session_state.username, team_size, *details, *[""] * (15 - len(details))))
                 conn.commit()
                 st.success("Team saved successfully. Redirecting to transaction page...")
                 safe_rerun()
 
-# Transaction Page
+
+# Transaction
 elif choice == "Transaction":
     st.title("Transaction")
     team_cost = {"Single (₹50)": 50, "Duo (₹80)": 80, "Trio (₹100)": 100}
-    qr_map = {"Single (₹50)": "qr-code.png", "Duo (₹80)": "qr-code (1).png", "Trio (₹100)": "qr-code (2).png"}
+    qr_map = {
+        "Single (₹50)": "qr-code.png",
+        "Duo (₹80)": "qr-code (1).png",
+        "Trio (₹100)": "qr-code (2).png"
+    }
     c = conn.cursor()
     c.execute("SELECT team_size FROM teams WHERE username=?", (st.session_state.username,))
     row = c.fetchone()
@@ -199,6 +239,7 @@ elif choice == "Transaction":
         qr_file = f"workshop_app_streamlit/{qr_map.get(team_size)}"
         st.write(f"Team Size: {team_size}")
         st.write(f"💰 Amount to be paid: ₹{price}")
+
         try:
             with open(qr_file, "rb") as f:
                 st.image(f.read(), caption=f"Scan to Pay for {team_size}", width=250)
@@ -212,9 +253,9 @@ elif choice == "Transaction":
             submit_txn = st.form_submit_button("Submit")
             if submit_txn:
                 if not valid_txn:
-                    st.error("Invalid Transaction ID format. It should start with 'T' followed by exactly 22 digits.")
+                    st.error("❌ Invalid Transaction ID format. It should start with 'T' followed by exactly 22 digits.")
                 elif not screenshot:
-                    st.error("Please upload the transaction screenshot.")
+                    st.error("❌ Please upload the transaction screenshot.")
                 else:
                     image_bytes = screenshot.read()
                     c.execute("REPLACE INTO transactions (username, amount, txn_id, screenshot) VALUES (?, ?, ?, ?)",
@@ -222,9 +263,11 @@ elif choice == "Transaction":
                     conn.commit()
                     st.success("Transaction recorded successfully.")
     else:
-        st.warning("Please fill out team details first on the 'Team Selection' page.")
+        st.warning("⚠️ Please fill out team details first on the 'Team Selection' page.")
 
 # Admin Panel
+
+
 elif choice == "Admin" and st.session_state.admin_logged_in:
     st.title("Admin Panel")
     st.subheader("Download Registration Details")
@@ -246,6 +289,7 @@ elif choice == "Admin" and st.session_state.admin_logged_in:
         st.markdown(f"**👤 Username:** `{username}`  \n**💸 Amount Paid:** ₹{amount}  \n**🔖 Transaction ID:** `{txn_id}`")
 
         if screenshot_blob:
+        # Convert to base64
             b64 = base64.b64encode(screenshot_blob).decode()
             file_ext = "png"
             img_html = f'''
@@ -257,9 +301,12 @@ elif choice == "Admin" and st.session_state.admin_logged_in:
             .tooltip-container .tooltip-img {{
                 visibility: hidden;
                 width: 200px;
+                background-color: transparent;
+                text-align: center;
+                border-radius: 6px;
                 position: absolute;
                 z-index: 1;
-                bottom: 125%;
+                bottom: 125%; 
                 left: 50%;
                 margin-left: -100px;
             }}
@@ -274,12 +321,11 @@ elif choice == "Admin" and st.session_state.admin_logged_in:
                 </div>
             </div>
             '''
+
             st.markdown(img_html, unsafe_allow_html=True)
         else:
             st.info("No screenshot uploaded.")
-
         st.markdown("---")
-
 
 
     st.subheader("💨 Danger Zone: Wipe All Data")
