@@ -227,6 +227,21 @@ if not st.session_state.user_logged_in and not st.session_state.admin_logged_in:
                         st.session_state.username = username
                         st.success("Logged in successfully!")
                         safe_rerun()
+                        if st.session_state.user_logged_in:
+                            c = conn.cursor()
+                            c.execute("SELECT name1, reg1, year1 FROM teams WHERE username=?", (st.session_state.username,))
+                            row = c.fetchone()
+                            has_team = row and all(row)
+                            if has_team:
+                                menu = ["Team Selection", "Transaction", "Logout"]
+                            else:
+                                menu = ["Team Selection", "Logout"]
+                            choice = st.sidebar.selectbox("Navigation", menu)
+
+                            elif st.session_state.admin_logged_in:
+                                menu = ["Admin", "Logout"]
+                                choice = st.sidebar.selectbox("Navigation", menu)
+
                     else:
                         st.error("Invalid credentials.")
 
