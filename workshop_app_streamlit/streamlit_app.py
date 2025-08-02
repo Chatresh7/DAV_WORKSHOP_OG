@@ -277,6 +277,14 @@ elif choice == "Team Selection":
 
                 # ✅ Generate PDF
                 pdf_bytes = generate_team_pdf(team_data, st.session_state.username)
+                send_email_with_pdf(
+                    to_address=st.session_state.username,
+                    subject="Your Workshop Team Info",
+                    message_body="Hi! Please find attached your team details for the workshop.",
+                    pdf_bytes=pdf_bytes,
+                    filename="team_info.pdf"
+                )
+
 
                 # ✅ Send email with PDF
                 try:
