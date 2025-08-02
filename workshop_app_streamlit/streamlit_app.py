@@ -167,6 +167,8 @@ if "clear_team_form" not in st.session_state:
 if "txn_success" not in st.session_state:
     st.session_state.txn_success = False
 
+choice = None
+
 # Homepage for non-logged-in users
 if not st.session_state.user_logged_in and not st.session_state.admin_logged_in:
     st.title("👋 Welcome to the Workshop Portal")
@@ -316,7 +318,7 @@ elif st.session_state.admin_logged_in:
 
 
 
-elif choice and choice == "Team Selection":
+elif choice == "Team Selection":
     st.title("Team Selection")
     team_size = st.radio("Select Team Size", ["Single (₹50)", "Duo (₹80)", "Trio (₹100)"])
     size_map = {"Single (₹50)": 1, "Duo (₹80)": 2, "Trio (₹100)": 3}
@@ -377,7 +379,7 @@ elif choice and choice == "Team Selection":
 
 
 # Transaction
-elif choice and choice == "Transaction":
+elif choice == "Transaction":
     st.title("Transaction")
 
     if "txn_success" not in st.session_state:
@@ -506,7 +508,7 @@ elif choice and choice == "Transaction":
 # Admin Panel
 
 
-elif choice and choice == "Admin" and st.session_state.admin_logged_in:
+elif choice == "Admin" and st.session_state.admin_logged_in:
     st.title("Admin Panel")
     st.subheader("Download Registration Details")
     reg_df = pd.read_sql_query("SELECT * FROM teams", conn)
@@ -623,7 +625,7 @@ elif choice and choice == "Admin" and st.session_state.admin_logged_in:
 
 
 # Logout
-elif choice and choice == "Logout":
+elif choice == "Logout":
     st.session_state.user_logged_in = False
     st.session_state.admin_logged_in = False
     st.session_state.username = ""
