@@ -159,7 +159,7 @@ elif choice == "Transaction":
         st.write(f"\U0001F4B0 Amount to be paid: ₹{price}")
 
         try:
-            with open("workshop_app_streamlit/your_qr.png", "rb") as f:
+            with open("your_qr.png", "rb") as f:
                 st.image(f.read(), caption="Scan to Pay", width=250)
         except FileNotFoundError:
             st.error("QR code image 'your_qr.png' not found.")
@@ -190,7 +190,7 @@ elif choice == "Admin" and st.session_state.admin_logged_in:
     st.download_button("Download Registration CSV", reg_df.to_csv(index=False), "registrations.csv", "text/csv")
 
     st.subheader("Download Transaction Details")
-    txn_df = pd.read_sql_query("SELECT username, amount, txn_id FROM transactions", conn)
+    txn_df = pd.read_sql_query("SELECT username, amount, txn_id, 'Uploaded' AS screenshot FROM transactions", conn)
     st.dataframe(txn_df)
     st.download_button("Download Transaction CSV", txn_df.to_csv(index=False), "transactions.csv", "text/csv")
 
