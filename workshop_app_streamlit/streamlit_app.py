@@ -333,7 +333,7 @@ elif st.session_state.admin_logged_in:
 
 
 
-elif choice == "Team Selection":
+elif choice and choice == "Team Selection":
     st.title("Team Selection")
     team_size = st.radio("Select Team Size", ["Single (₹50)", "Duo (₹80)", "Trio (₹100)"])
     size_map = {"Single (₹50)": 1, "Duo (₹80)": 2, "Trio (₹100)": 3}
