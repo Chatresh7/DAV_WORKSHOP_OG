@@ -49,6 +49,9 @@ def generate_team_qr(data: str):
     buf = io.BytesIO()
     img.save(buf, format="PNG")
     return buf.getvalue()
+def clean_text(text):
+    return str(text).encode('latin-1', 'replace').decode('latin-1')
+
 def generate_team_pdf(team_data, username):
     pdf = FPDF()
     pdf.add_page()
@@ -57,26 +60,27 @@ def generate_team_pdf(team_data, username):
     pdf.cell(200, 10, txt="Workshop Team Details", ln=True, align="C")
     pdf.ln(10)
 
-    pdf.cell(200, 10, txt=f"Username (Email): {username}", ln=True)
-    pdf.cell(200, 10, txt=f"Team Size: {team_data['team_size']}", ln=True)
+    pdf.cell(200, 10, txt=clean_text(f"Username (Email): {username}"), ln=True)
+    pdf.cell(200, 10, txt=clean_text(f"Team Size: {team_data['team_size']}"), ln=True)
     pdf.ln(5)
 
     for i, member in enumerate(team_data["members"], start=1):
         title = "Team Leader" if i == 1 else f"Member {i}"
         pdf.set_font("Arial", "B", size=12)
-        pdf.cell(200, 10, txt=title, ln=True)
+        pdf.cell(200, 10, txt=clean_text(title), ln=True)
         pdf.set_font("Arial", size=12)
-        pdf.cell(200, 8, txt=f"Name: {member['name']}", ln=True)
-        pdf.cell(200, 8, txt=f"Reg No: {member['reg']}", ln=True)
-        pdf.cell(200, 8, txt=f"Year: {member['year']}", ln=True)
-        pdf.cell(200, 8, txt=f"Branch: {member['branch']}", ln=True)
-        pdf.cell(200, 8, txt=f"Section: {member['section']}", ln=True)
+        pdf.cell(200, 8, txt=clean_text(f"Name: {member['name']}"), ln=True)
+        pdf.cell(200, 8, txt=clean_text(f"Reg No: {member['reg']}"), ln=True)
+        pdf.cell(200, 8, txt=clean_text(f"Year: {member['year']}"), ln=True)
+        pdf.cell(200, 8, txt=clean_text(f"Branch: {member['branch']}"), ln=True)
+        pdf.cell(200, 8, txt=clean_text(f"Section: {member['section']}"), ln=True)
         pdf.ln(4)
 
     pdf_output = io.BytesIO()
     pdf.output(pdf_output)
     pdf_output.seek(0)
     return pdf_output
+
 
 
 
