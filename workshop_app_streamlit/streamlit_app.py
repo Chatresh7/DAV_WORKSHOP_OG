@@ -159,8 +159,7 @@ elif choice == "Transaction":
     if row:
         team_size = row[0]
         price = team_cost.get(team_size)
-        qr_file = f"/mnt/data/{qr_map.get(team_size)}"
-
+        qr_file = f"/workshop_app_streamlit/{qr_map.get(team_size)}"
         st.write(f"Team Size: {team_size}")
         st.write(f"💰 Amount to be paid: ₹{price}")
 
