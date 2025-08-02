@@ -125,11 +125,11 @@ elif choice == "Login":
                 else:
                     st.error("Invalid credentials.")
 
-# Team Selection
+
 elif choice == "Team Selection":
     st.title("Team Selection")
     team_size = st.radio("Select Team Size", ["Single (₹50)", "Duo (₹80)", "Trio (₹100)"])
-    size_map = {"Single (₹50)": 1, "Duo (₹80)": 2, "Trio (₹100)": 3}
+    size_map = {"Single (₹50)": 1, "Duo (₹80)", "Trio (₹100)": 3}
     size = size_map[team_size]
 
     if st.session_state.clear_team_form:
@@ -142,12 +142,16 @@ elif choice == "Team Selection":
     with st.form("team_form"):
         details = []
         for i in range(1, size + 1):
+            # No number for single, numbered for duo/trio
+            show_number = (size != 1)
+            label_suffix = f" {i}" if show_number else ""
+
             st.subheader("Your Details" if size == 1 else f"Member {i}")
-            name = st.text_input(f"Name {i}", key=f"name_{i}")
-            reg = st.text_input(f"Reg Number {i}", key=f"reg_{i}")
-            year = st.text_input(f"Year {i}", key=f"year_{i}")
-            branch = st.text_input(f"Branch {i}", key=f"branch_{i}")
-            section = st.text_input(f"Section {i}", key=f"section_{i}")
+            name = st.text_input(f"Name{label_suffix}", key=f"name_{i}")
+            reg = st.text_input(f"Reg Number{label_suffix}", key=f"reg_{i}")
+            year = st.selectbox(f"Year{label_suffix}", options=["1", "2", "3", "4"], key=f"year_{i}")
+            branch = st.selectbox(f"Branch{label_suffix}", options=["CSD", "CSE", "CSM", "IT"], key=f"branch_{i}")
+            section = st.selectbox(f"Section{label_suffix}", options=["A", "B", "C", "D"], key=f"section_{i}")
             details.extend([name, reg, year, branch, section])
 
         col1, col2 = st.columns(2)
@@ -167,10 +171,11 @@ elif choice == "Team Selection":
                 c.execute("DELETE FROM teams WHERE username=?", (st.session_state.username,))
                 placeholders = ",".join(["?"] * 17)
                 c.execute(f"INSERT INTO teams VALUES ({placeholders})",
-                          (st.session_state.username, team_size, *details, *[""] * (15 - len(details)) ))
+                          (st.session_state.username, team_size, *details, *[""] * (15 - len(details))))
                 conn.commit()
                 st.success("Team saved successfully. Redirecting to transaction page...")
                 safe_rerun()
+
 
 # Transaction
 elif choice == "Transaction":
