@@ -255,8 +255,6 @@ elif st.session_state.admin_logged_in:
     menu = ["Admin", "Logout"]
     choice = st.sidebar.selectbox("Navigation", menu)
 
-else:
-    choice = None  # Nothing shown in sidebar before login
 
 
 #choice = st.sidebar.selectbox("Navigation", menu)
