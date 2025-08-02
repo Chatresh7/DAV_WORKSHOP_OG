@@ -312,12 +312,18 @@ elif choice == "Team Selection":
 # Transaction
 elif choice == "Transaction":
     st.title("Transaction")
+
+    # Make sure txn_success state exists
+    if "txn_success" not in st.session_state:
+        st.session_state.txn_success = False
+
     team_cost = {"Single (₹50)": 50, "Duo (₹80)": 80, "Trio (₹100)": 100}
     qr_map = {
         "Single (₹50)": "qr-code.png",
         "Duo (₹80)": "qr-code (1).png",
         "Trio (₹100)": "qr-code (2).png"
     }
+
     c = conn.cursor()
     c.execute("SELECT team_size FROM teams WHERE username=?", (st.session_state.username,))
     row = c.fetchone()
@@ -326,6 +332,7 @@ elif choice == "Transaction":
         team_size = row[0]
         price = team_cost.get(team_size)
         qr_file = f"workshop_app_streamlit/{qr_map.get(team_size)}"
+
         st.write(f"Team Size: {team_size}")
         st.write(f"💰 Amount to be paid: ₹{price}")
 
@@ -340,6 +347,7 @@ elif choice == "Transaction":
             valid_txn = bool(re.match(r"^T\d{22}$", txn_id)) if txn_id else False
             screenshot = st.file_uploader("Upload Payment Screenshot", type=["png", "jpg", "jpeg"])
             submit_txn = st.form_submit_button("Submit")
+
             if submit_txn:
                 if not valid_txn:
                     st.error("❌ Invalid Transaction ID format. It should start with 'T' followed by exactly 22 digits.")
@@ -347,35 +355,52 @@ elif choice == "Transaction":
                     st.error("❌ Please upload the transaction screenshot.")
                 else:
                     image_bytes = screenshot.read()
-                    c.execute("REPLACE INTO transactions (username, amount, txn_id, screenshot) VALUES (?, ?, ?, ?)",
-                              (st.session_state.username, price, txn_id, image_bytes))
+                    c.execute(
+                        "REPLACE INTO transactions (username, amount, txn_id, screenshot) VALUES (?, ?, ?, ?)",
+                        (st.session_state.username, price, txn_id, image_bytes)
+                    )
                     conn.commit()
+                    st.session_state.last_txn_id = txn_id
+                    st.session_state.last_price = price
                     st.session_state.txn_success = True
                     safe_rerun()
 
-# Show WhatsApp link after transaction submission
-            if st.session_state.txn_success:
-                st.success("Transaction recorded successfully!")
-                send_email(
-                    st.session_state.username,
-                    "Workshop Payment Received 💰",
-                    f"Hi,\n\nYour payment of ₹{price} was received successfully. Your transaction ID is: {txn_id}.\n\nThanks for registering!"
-                )
+    else:
+        st.warning("⚠️ Please fill out team details first on the 'Team Selection' page.")
 
-                st.markdown(
-                    """
-                    <a href="https://chat.whatsapp.com/CGE0UiKKPeu63xzZqs8sMW" target="_blank"
-                       style="display: inline-flex; align-items: center; padding: 10px 20px;
-                              background-color: #25D366; color: black; border-radius: 6px;
-                              text-decoration: none; font-weight: bold;">
-                        <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg"
-                             alt="WhatsApp" width="24" style="margin-right: 10px;">
-                        Join WhatsApp Group
-                    </a>
-                    """,
-                    unsafe_allow_html=True
-                )
-                st.session_state.txn_success = True
+    # ✅ After rerun - show WhatsApp join link and confirmation
+    if st.session_state.txn_success:
+        st.success("Transaction recorded successfully!")
+
+        # Send confirmation email
+        try:
+            send_email(
+                st.session_state.username,
+                "Workshop Payment Received 💰",
+                f"Hi,\n\nYour payment of ₹{st.session_state.last_price} was received successfully. "
+                f"Your transaction ID is: {st.session_state.last_txn_id}.\n\nThanks for registering!"
+            )
+        except Exception as e:
+            st.warning(f"📧 Email failed to send: {e}")
+
+        # Show WhatsApp join button
+        st.markdown(
+            """
+            <a href="https://chat.whatsapp.com/CGE0UiKKPeu63xzZqs8sMW" target="_blank"
+               style="display: inline-flex; align-items: center; padding: 10px 20px;
+                      background-color: #25D366; color: black; border-radius: 6px;
+                      text-decoration: none; font-weight: bold;">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg"
+                     alt="WhatsApp" width="24" style="margin-right: 10px;">
+                Join WhatsApp Group
+            </a>
+            """,
+            unsafe_allow_html=True
+        )
+
+        # Reset flag so it doesn't show again unless new txn is made
+        st.session_state.txn_success = False
+
 
 
 
