@@ -248,7 +248,7 @@ elif choice == "Admin" and st.session_state.admin_logged_in:
 
         if screenshot_blob:
         # Convert image to base64
-             b64 = base64.b64encode(screenshot_blob).decode()
+            b64 = base64.b64encode(screenshot_blob).decode()
             file_ext = "png"  # assume png; you can enhance to detect extension
             file_name = f"screenshot_{idx}.{file_ext}"
             data_url = f"data:image/{file_ext};base64,{b64}"
