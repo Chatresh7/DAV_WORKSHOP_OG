@@ -1,4 +1,4 @@
-# Final updated streamlit_app.py with fixed QR and transaction image upload
+# Final updated streamlit_app.py with safe Admin Data Wipe
 import streamlit as st
 import sqlite3
 import pandas as pd
@@ -6,7 +6,6 @@ import qrcode
 import io
 from PIL import Image
 import re
-
 
 st.set_page_config(page_title="Workshop Portal", layout="centered")
 
@@ -44,7 +43,6 @@ def safe_rerun():
         if "Session state" not in str(e):
             raise
 
-
 # Session state
 if "user_logged_in" not in st.session_state:
     st.session_state.user_logged_in = False
@@ -57,27 +55,19 @@ if "admin_logged_in" not in st.session_state:
 menu = ["Register", "Login"]
 
 if st.session_state.user_logged_in:
-    # Initialize DB cursor
     c = conn.cursor()
     c.execute("SELECT 1 FROM teams WHERE username=?", (st.session_state.username,))
     has_team = c.fetchone() is not None
-
-    # Debug: show in sidebar whether user has filled team details
-    #st.sidebar.write("✅ Team Details Filled:", has_team)
-
     if has_team:
         menu = ["Team Selection", "Transaction", "Logout"]
     else:
         menu = ["Team Selection", "Logout"]
-
 elif st.session_state.admin_logged_in:
     menu = ["Admin", "Logout"]
 
-# Sidebar navigation
 choice = st.sidebar.selectbox("Navigation", menu)
 
-
-# User Registration
+# Register
 if choice == "Register":
     st.title("User Registration")
     with st.form("register_form"):
@@ -96,7 +86,7 @@ if choice == "Register":
             else:
                 st.error("All fields are required.")
 
-# User/Admin Login
+# Login
 elif choice == "Login":
     st.title("Login")
     with st.form("login_form"):
@@ -129,10 +119,7 @@ elif choice == "Team Selection":
     with st.form("team_form"):
         details = []
         for i in range(1, size + 1):
-            if size == 1:
-                st.subheader("Your Details")
-            else:
-                st.subheader(f"Member {i}")
+            st.subheader("Your Details" if size == 1 else f"Member {i}")
             name = st.text_input(f"Name {i}")
             reg = st.text_input(f"Reg Number {i}")
             year = st.text_input(f"Year {i}")
@@ -142,7 +129,6 @@ elif choice == "Team Selection":
 
         submit_team = st.form_submit_button("Submit Team")
         if submit_team:
-    # Validate first member's fields (name, reg, year at minimum)
             if not details[0].strip() or not details[1].strip() or not details[2].strip():
                 st.error("❌ Please fill at least the first member's Name, Reg Number, and Year.")
             else:
@@ -150,10 +136,11 @@ elif choice == "Team Selection":
                 c.execute("DELETE FROM teams WHERE username=?", (st.session_state.username,))
                 placeholders = ",".join(["?"] * 17)
                 c.execute(f"INSERT INTO teams VALUES ({placeholders})",
-                  (st.session_state.username, team_size, *details, *[""] * (15 - len(details))))
+                          (st.session_state.username, team_size, *details, *[""] * (15 - len(details))))
                 conn.commit()
                 st.success("Team saved successfully. Redirecting to transaction page...")
                 safe_rerun()
+
     st.markdown("---")
     if st.button("❌ Clear All My Data"):
         c = conn.cursor()
@@ -163,25 +150,15 @@ elif choice == "Team Selection":
         st.success("All your data has been cleared.")
         safe_rerun()
 
-
-# Transaction Page
+# Transaction
 elif choice == "Transaction":
     st.title("Transaction")
-
-    # Define the team cost and corresponding QR image for each team size
-    team_cost = {
-        "Single (₹50)": 50,
-        "Duo (₹80)": 80,
-        "Trio (₹100)": 100
-    }
-
+    team_cost = {"Single (₹50)": 50, "Duo (₹80)": 80, "Trio (₹100)": 100}
     qr_map = {
         "Single (₹50)": "qr-code.png",
         "Duo (₹80)": "qr-code (1).png",
         "Trio (₹100)": "qr-code (2).png"
     }
-
-    # Fetch the team size from the database for the logged-in user
     c = conn.cursor()
     c.execute("SELECT team_size FROM teams WHERE username=?", (st.session_state.username,))
     row = c.fetchone()
@@ -193,21 +170,17 @@ elif choice == "Transaction":
         st.write(f"Team Size: {team_size}")
         st.write(f"💰 Amount to be paid: ₹{price}")
 
-        # Show QR Code based on team size
         try:
             with open(qr_file, "rb") as f:
                 st.image(f.read(), caption=f"Scan to Pay for {team_size}", width=250)
         except FileNotFoundError:
             st.error(f"QR code image not found: {qr_file}")
 
-        # Transaction form
         with st.form("txn_form"):
             txn_id = st.text_input("Enter Transaction ID")
             valid_txn = bool(re.match(r"^T\d{22}$", txn_id)) if txn_id else False
-
             screenshot = st.file_uploader("Upload Payment Screenshot", type=["png", "jpg", "jpeg"])
             submit_txn = st.form_submit_button("Submit")
-
             if submit_txn:
                 if not valid_txn:
                     st.error("❌ Invalid Transaction ID format. It should start with 'T' followed by exactly 22 digits.")
@@ -225,7 +198,6 @@ elif choice == "Transaction":
 # Admin Panel
 elif choice == "Admin" and st.session_state.admin_logged_in:
     st.title("Admin Panel")
-
     st.subheader("Download Registration Details")
     reg_df = pd.read_sql_query("SELECT * FROM teams", conn)
     st.dataframe(reg_df)
@@ -234,14 +206,12 @@ elif choice == "Admin" and st.session_state.admin_logged_in:
     st.subheader("Download Transaction Details")
     txn_df = pd.read_sql_query("SELECT username, amount, txn_id FROM transactions", conn)
     st.dataframe(txn_df)
-
     st.download_button("Download Transaction CSV", txn_df.to_csv(index=False), "transactions.csv", "text/csv")
 
     st.subheader("Preview Uploaded Screenshots and Amounts")
     c = conn.cursor()
     c.execute("SELECT username, amount, txn_id, screenshot FROM transactions")
     txn_rows = c.fetchall()
-
     for username, amount, txn_id, screenshot_blob in txn_rows:
         st.markdown(f"**👤 Username:** `{username}`  \n**💸 Amount Paid:** ₹{amount}  \n**🔖 Transaction ID:** `{txn_id}`")
         if screenshot_blob:
@@ -250,15 +220,13 @@ elif choice == "Admin" and st.session_state.admin_logged_in:
         else:
             st.info("No screenshot uploaded.")
         st.markdown("---")
-    st.subheader("🧨 Danger Zone: Wipe All Data")
 
+    st.subheader("💨 Danger Zone: Wipe All Data")
     with st.form("wipe_form"):
         admin_pwd = st.text_input("Enter Admin Password to Confirm", type="password")
         confirm_wipe = st.form_submit_button("Wipe All Data")
-
         if confirm_wipe:
             if admin_pwd == "admin234":
-                c = conn.cursor()
                 c.execute("DELETE FROM users")
                 c.execute("DELETE FROM teams")
                 c.execute("DELETE FROM transactions")
@@ -268,9 +236,7 @@ elif choice == "Admin" and st.session_state.admin_logged_in:
             else:
                 st.error("❌ Incorrect password. Wipe operation aborted.")
 
-
-
-# Logout for all
+# Logout
 elif choice == "Logout":
     st.session_state.user_logged_in = False
     st.session_state.admin_logged_in = False
