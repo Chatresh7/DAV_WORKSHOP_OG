@@ -5,6 +5,8 @@ import pandas as pd
 import qrcode
 import io
 from PIL import Image
+import re
+
 
 st.set_page_config(page_title="Workshop Portal", layout="centered")
 
@@ -166,17 +168,21 @@ elif choice == "Transaction":
 
         with st.form("txn_form"):
             txn_id = st.text_input("Enter Transaction ID")
+            valid_txn = bool(re.match(r"^T\d{22}$", txn_id)) if txn_id else False
+
             screenshot = st.file_uploader("Upload Payment Screenshot", type=["png", "jpg", "jpeg"])
             submit_txn = st.form_submit_button("Submit")
             if submit_txn:
-                if txn_id and screenshot:
+                if not valid_txn:
+                    st.error("❌ Invalid Transaction ID format. It should start with 'T' followed by exactly 22 digits.")
+                elif not screenshot:
+                    st.error("❌ Please upload the transaction screenshot.")
+                else:
                     image_bytes = screenshot.read()
-                    c.execute("REPLACE INTO transactions (username, amount, txn_id, screenshot) VALUES (?, ?, ?, ?)",
-                              (st.session_state.username, price, txn_id, image_bytes))
+                    c.execute("REPLACE INTO transactions (username, amount, txn_id, screenshot) VALUES (?, ?, ?, ?)",(st.session_state.username, price, txn_id, image_bytes))
                     conn.commit()
                     st.success("Transaction recorded successfully.")
-                else:
-                    st.error("Please provide both Transaction ID and Screenshot.")
+
     else:
         st.warning("Please fill team details first.")
 
