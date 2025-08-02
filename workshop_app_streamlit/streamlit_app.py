@@ -179,21 +179,28 @@ def get_sidebar_choice():
             menu = ["Team Selection", "Transaction", "Logout"]
         else:
             menu = ["Team Selection", "Logout"]
-        return st.sidebar.selectbox("Navigation", menu)
+
+        default_index = 0
+        if "menu_redirect" in st.session_state and st.session_state.menu_redirect in menu:
+            default_index = menu.index(st.session_state.menu_redirect)
+        return st.sidebar.selectbox("Navigation", menu, index=default_index)
 
     elif st.session_state.admin_logged_in:
         menu = ["Admin", "Logout"]
-        return st.sidebar.selectbox("Navigation", menu)
+        default_index = 0
+        if "menu_redirect" in st.session_state and st.session_state.menu_redirect in menu:
+            default_index = menu.index(st.session_state.menu_redirect)
+        return st.sidebar.selectbox("Navigation", menu, index=default_index)
 
     return None
 
+
 # Set sidebar choice globally
 #choice = get_sidebar_choice()
+choice = get_sidebar_choice()
 if "menu_redirect" in st.session_state:
-    choice = st.session_state.menu_redirect
     del st.session_state.menu_redirect
-else:
-    choice = get_sidebar_choice()
+
 
 
 # Homepage for non-logged-in users
