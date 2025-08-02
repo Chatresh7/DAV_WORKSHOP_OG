@@ -58,6 +58,9 @@ if "admin_logged_in" not in st.session_state:
     st.session_state.admin_logged_in = False
 if "clear_team_form" not in st.session_state:
     st.session_state.clear_team_form = False
+if "txn_success" not in st.session_state:
+    st.session_state.txn_success = False
+
 
 # Sidebar menu based on login and team registration status
 menu = ["Register", "Login"]
