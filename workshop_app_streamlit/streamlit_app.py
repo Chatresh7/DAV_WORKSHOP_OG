@@ -62,7 +62,7 @@ if st.session_state.user_logged_in:
     has_team = c.fetchone() is not None
 
     # Debug: show in sidebar whether user has filled team details
-    st.sidebar.write("✅ Team Details Filled:", has_team)
+    #st.sidebar.write("✅ Team Details Filled:", has_team)
 
     if has_team:
         menu = ["Team Selection", "Transaction", "Logout"]
