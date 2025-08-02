@@ -249,6 +249,26 @@ elif choice == "Admin" and st.session_state.admin_logged_in:
             st.image(image, caption=f"Payment Screenshot ({username})", width=300)
         else:
             st.info("No screenshot uploaded.")
+        st.markdown("---")
+    st.subheader("🧨 Danger Zone: Wipe All Data")
+
+    with st.form("wipe_form"):
+        admin_pwd = st.text_input("Enter Admin Password to Confirm", type="password")
+        confirm_wipe = st.form_submit_button("Wipe All Data")
+
+        if confirm_wipe:
+            if admin_pwd == "admin234":
+                c = conn.cursor()
+                c.execute("DELETE FROM users")
+                c.execute("DELETE FROM teams")
+                c.execute("DELETE FROM transactions")
+                conn.commit()
+                st.success("✅ All data wiped successfully from the database.")
+                safe_rerun()
+            else:
+                st.error("❌ Incorrect password. Wipe operation aborted.")
+
+
 
 # Logout for all
 elif choice == "Logout":
