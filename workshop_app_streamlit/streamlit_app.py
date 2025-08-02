@@ -5,6 +5,7 @@ import qrcode
 import io
 from PIL import Image
 import re
+import base64
 
 st.set_page_config(page_title="Workshop Portal", layout="centered")
 
@@ -223,6 +224,8 @@ elif choice == "Transaction":
         st.warning("⚠️ Please fill out team details first on the 'Team Selection' page.")
 
 # Admin Panel
+
+
 elif choice == "Admin" and st.session_state.admin_logged_in:
     st.title("Admin Panel")
     st.subheader("Download Registration Details")
@@ -241,9 +244,17 @@ elif choice == "Admin" and st.session_state.admin_logged_in:
     txn_rows = c.fetchall()
     for username, amount, txn_id, screenshot_blob in txn_rows:
         st.markdown(f"**👤 Username:** `{username}`  \n**💸 Amount Paid:** ₹{amount}  \n**🔖 Transaction ID:** `{txn_id}`")
+
         if screenshot_blob:
-            image = Image.open(io.BytesIO(screenshot_blob))
-            st.image(image, caption=f"Payment Screenshot ({username})", width=300)
+            # Convert to base64 for hyperlink preview
+            img_base64 = base64.b64encode(screenshot_blob).decode()
+            image_data_url = f"data:image/png;base64,{img_base64}"
+
+            # Display an eye icon with clickable preview
+            st.markdown(
+                f'<a href="{image_data_url}" target="_blank" style="font-size:22px;" title="Click to view screenshot 👁️">👁️ View Screenshot</a>',
+                unsafe_allow_html=True
+            )
         else:
             st.info("No screenshot uploaded.")
         st.markdown("---")
@@ -262,6 +273,7 @@ elif choice == "Admin" and st.session_state.admin_logged_in:
                 safe_rerun()
             else:
                 st.error("❌ Incorrect password. Wipe operation aborted.")
+
 
 # Logout
 elif choice == "Logout":
