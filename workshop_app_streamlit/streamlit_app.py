@@ -380,18 +380,12 @@ elif choice and choice == "Team Selection":
                 st.error("❌ Please fill at least the first member's Name, Reg Number, and Year.")
             else:
                 c = conn.cursor()
-                c.execute("SELECT * FROM teams WHERE username=?", (st.session_state.username,))
-                existing = c.fetchone()
-
-                if existing:
-                    st.warning("⚠ Team already submitted. If you need to update it, contact the admin.")
-                else:
-                    placeholders = ",".join(["?"] * 17)
-                    c.execute(f"INSERT INTO teams VALUES ({placeholders})",
-                              (st.session_state.username, team_size, *details, *[""] * (15 - len(details))))
-                    conn.commit()
-                    st.session_state.menu_redirect = "Transaction"
-                    st.rerun()  # ✅ THIS forces the app to re-run and redirect immediately
+                c.execute("DELETE FROM teams WHERE username=?", (st.session_state.username,))
+                placeholders = ",".join(["?"] * 17)
+                c.execute(f"INSERT INTO teams VALUES ({placeholders})",
+                          (st.session_state.username, team_size, *details, *[""] * (15 - len(details))))
+                conn.commit()
+                submitted_success = True  # ✅ THIS forces the app to re-run and redirect immediately
 
     if submitted_success:
         team_info = f"Team Leader: {details[0]} ({details[1]})\n"
