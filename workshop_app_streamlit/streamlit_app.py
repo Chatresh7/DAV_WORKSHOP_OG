@@ -28,6 +28,16 @@ def send_email(to_address, subject, message_body):
         print("✅ Email sent successfully.")
     except Exception as e:
         print("❌ Email failed:", e)
+        
+def generate_team_qr(data: str):
+    qr = qrcode.QRCode(box_size=8, border=2)
+    qr.add_data(data)
+    qr.make(fit=True)
+    img = qr.make_image(fill_color="black", back_color="white")
+    buf = io.BytesIO()
+    img.save(buf, format="PNG")
+    return buf.getvalue()
+
 
 st.set_page_config(page_title="Workshop Portal", layout="centered")
 
@@ -204,8 +214,22 @@ elif choice == "Team Selection":
                 c.execute(f"INSERT INTO teams VALUES ({placeholders})",
                           (st.session_state.username, team_size, *details, *[""] * (15 - len(details))))
                 conn.commit()
-                st.success("Team saved successfully. Redirecting to transaction page...")
-                safe_rerun()
+                # Prepare team data for QR
+                team_info = f"Team Leader: {details[0]} ({details[1]})\n"
+                for i in range(1, size):
+                    team_info += f"Member {i+1}: {details[i*5]} ({details[i*5+1]})\n"
+
+# Generate QR
+                qr_bytes = generate_team_qr(team_info)
+
+# Show QR to user
+                st.success("✅ Team saved successfully!")
+                st.image(qr_bytes, caption="Your Team QR Code", width=250)
+                st.download_button("📥 Download QR Code", data=qr_bytes, file_name="team_qr.png")
+
+# Optionally move to transaction manually
+                st.info("Proceed to the Transaction tab to complete your registration.")
+
 
 
 # Transaction
