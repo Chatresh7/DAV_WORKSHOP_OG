@@ -1,4 +1,3 @@
-# Final updated streamlit_app.py with safe Admin Data Wipe
 import streamlit as st
 import sqlite3
 import pandas as pd
@@ -34,6 +33,11 @@ def init_db():
     return conn
 
 conn = init_db()
+
+# Email validation function
+def is_valid_email(email):
+    pattern = r'^[\w\.-]+@[\w\.-]+\.\w+$'
+    return re.match(pattern, email) is not None
 
 # Safe rerun function
 def safe_rerun():
@@ -74,26 +78,32 @@ choice = st.sidebar.selectbox("Navigation", menu)
 if choice == "Register":
     st.title("User Registration")
     with st.form("register_form"):
-        username = st.text_input("Username")
+        username = st.text_input("Email ID (will be your username)")
         password = st.text_input("Password", type="password")
         submitted = st.form_submit_button("Register")
         if submitted:
-            if username and password:
-                c = conn.cursor()
-                try:
-                    c.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username, password))
-                    conn.commit()
-                    st.success("Registered successfully. Please login.")
-                except:
-                    st.error("Username already exists.")
-            else:
+            if not username or not password:
                 st.error("All fields are required.")
+            elif not is_valid_email(username):
+                st.error("Please enter a valid email address.")
+            else:
+                c = conn.cursor()
+                c.execute("SELECT 1 FROM users WHERE username=?", (username,))
+                if c.fetchone():
+                    st.error("This email is already registered. Please login.")
+                else:
+                    try:
+                        c.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username, password))
+                        conn.commit()
+                        st.success("Registered successfully. Please login.")
+                    except:
+                        st.error("Error occurred while registering.")
 
 # Login
 elif choice == "Login":
     st.title("Login")
     with st.form("login_form"):
-        username = st.text_input("Username")
+        username = st.text_input("Email ID")
         password = st.text_input("Password", type="password")
         login_btn = st.form_submit_button("Login")
         if login_btn:
@@ -154,7 +164,7 @@ elif choice == "Team Selection":
                 c.execute("DELETE FROM teams WHERE username=?", (st.session_state.username,))
                 placeholders = ",".join(["?"] * 17)
                 c.execute(f"INSERT INTO teams VALUES ({placeholders})",
-                          (st.session_state.username, team_size, *details, *[""] * (15 - len(details))))
+                          (st.session_state.username, team_size, *details, *[""] * (15 - len(details)) ))
                 conn.commit()
                 st.success("Team saved successfully. Redirecting to transaction page...")
                 safe_rerun()
