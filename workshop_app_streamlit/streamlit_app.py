@@ -35,8 +35,8 @@ def send_email(to_address, subject, message_body):
 
 
 def send_email_with_pdf(to_address, subject, message_body, pdf_bytes, filename):
-    sender_email = "hemishkonchada@gmail.com"  # replace with your Gmail
-    app_password = "bnjv faai ndmi sdck"     # 16-char app password
+    sender_email = "konchadachatresh.23.csd@anits.edu.in"  # replace with your Gmail
+    app_password = "idoo pzkz gdjr mkhj"     # 16-char app password
 
     msg = MIMEMultipart()
     msg["From"] = sender_email
