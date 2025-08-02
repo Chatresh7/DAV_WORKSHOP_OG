@@ -261,24 +261,7 @@ if not st.session_state.user_logged_in and not st.session_state.admin_logged_in:
 # Sidebar menu based on login and team registration status
 #menu = ["Register", "Login"]
 
-if st.session_state.user_logged_in:
-    # ✅ Decide menu based on team status
-    c = conn.cursor()
-    c.execute("SELECT name1, reg1, year1 FROM teams WHERE username=?", (st.session_state.username,))
-    row = c.fetchone()
-    has_team = row and all(row)
-    if has_team:
-        menu = ["Team Selection", "Transaction", "Logout"]
-    else:
-        menu = ["Team Selection", "Logout"]
 
-    # ✅ Show sidebar
-    choice = st.sidebar.selectbox("Navigation", menu)
-
-elif st.session_state.admin_logged_in:
-    # ✅ Admin menu
-    menu = ["Admin", "Logout"]
-    choice = st.sidebar.selectbox("Navigation", menu)
 
 
 
