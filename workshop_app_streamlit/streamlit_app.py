@@ -247,21 +247,25 @@ elif choice == "Admin" and st.session_state.admin_logged_in:
         st.markdown(f"**👤 Username:** `{username}`  \n**💸 Amount Paid:** ₹{amount}  \n**🔖 Transaction ID:** `{txn_id}`")
 
         if screenshot_blob:
-        # Convert image to base64
+        # Convert image blob to base64 for browser preview
             b64 = base64.b64encode(screenshot_blob).decode()
-            file_ext = "png"  # assume png; you can enhance to detect extension
-            file_name = f"screenshot_{idx}.{file_ext}"
+            file_ext = "png"  # Assuming PNG; adjust if needed
             data_url = f"data:image/{file_ext};base64,{b64}"
 
-        # Show clickable 👁️ icon
+        # Show only 👁️ icon, which opens screenshot in new tab
             st.markdown(
-                f'<a href="{data_url}" download="{file_name}" target="_blank" title="View Screenshot" style="text-decoration: none;">'
-                f'<span style="font-size: 22px;">👁️</span></a>',
+                f'''
+                <a href="{data_url}" target="_blank" title="View Screenshot" style="text-decoration: none;">
+                    <span style="font-size: 22px;">👁️</span>
+                </a>
+                ''',
                 unsafe_allow_html=True
             )
         else:
             st.info("No screenshot uploaded.")
-            st.markdown("---")
+
+        st.markdown("---")
+
 
     st.subheader("💨 Danger Zone: Wipe All Data")
     with st.form("wipe_form"):
