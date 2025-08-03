@@ -395,7 +395,12 @@ elif choice and choice == "Team Selection":
                 safe_rerun()
 
     # ✅ After rerun, show QR and transaction link
-    if st.session_state.get("team_saved_successfully"):
+    if (
+        st.session_state.get("team_saved_successfully")
+        and "qr_details" in st.session_state
+        and "qr_team_size" in st.session_state
+        and "team_code" in st.session_state
+    ):
         details = st.session_state.qr_details
         size = st.session_state.qr_team_size
         team_code = st.session_state.team_code
