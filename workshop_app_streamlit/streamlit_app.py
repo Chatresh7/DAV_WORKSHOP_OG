@@ -340,6 +340,8 @@ if not st.session_state.user_logged_in and not st.session_state.admin_logged_in:
 
 
 elif choice and choice == "Team Selection":
+    import uuid  # Required for generating team code
+
     st.title("Team Selection")
     team_size = st.radio("Select Team Size", ["Single (₹50)", "Duo (₹80)", "Trio (₹100)"])
     size_map = {"Single (₹50)": 1, "Duo (₹80)": 2, "Trio (₹100)": 3}
@@ -384,17 +386,22 @@ elif choice and choice == "Team Selection":
                           (st.session_state.username, team_size, *details, *[""] * (15 - len(details))))
                 conn.commit()
 
-                # ✅ Store info for QR rendering after rerun
+                # ✅ Save team code, details in session for QR
+                team_code = f"DAVTEAM-{uuid.uuid4().hex[:8].upper()}"
+                st.session_state.team_code = team_code
+                st.session_state.qr_details = details
+                st.session_state.qr_team_size = size
                 st.session_state.team_saved_successfully = True
-                st.session_state.team_qr_details = details
-                st.session_state.team_qr_size = size
                 safe_rerun()
 
-    # ✅ After successful submission, show QR and proceed button
+    # ✅ After rerun, show QR and transaction link
     if st.session_state.get("team_saved_successfully"):
-        details = st.session_state.team_qr_details
-        size = st.session_state.team_qr_size
-        team_info = f"Team Leader: {details[0]} ({details[1]})\n"
+        details = st.session_state.qr_details
+        size = st.session_state.qr_team_size
+        team_code = st.session_state.team_code
+
+        team_info = f"Team Code: {team_code}\n"
+        team_info += f"Team Leader: {details[0]} ({details[1]})\n"
         for i in range(1, size):
             team_info += f"Member {i+1}: {details[i*5]} ({details[i*5+1]})\n"
 
@@ -403,12 +410,11 @@ elif choice and choice == "Team Selection":
         st.success("✅ Team saved successfully!")
         st.image(qr_bytes, caption="Your Team QR Code", width=250)
         st.download_button("📥 Download QR Code", data=qr_bytes, file_name="team_qr.png")
-        st.text_area("Team Code", team_info, height=100)
-        st.markdown("Once done, proceed to the next step.")
+        st.text_area("Team Code Info", team_info, height=120)
 
         if st.button("➡️ Proceed to Transaction Page"):
             st.session_state.menu_redirect = "Transaction"
-            st.session_state.team_saved_successfully = False
+            st.session_state.team_saved_successfully = False  # Clear flag
             safe_rerun()
 
 
