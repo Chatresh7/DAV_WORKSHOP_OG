@@ -385,7 +385,11 @@ elif choice and choice == "Team Selection":
                 c.execute(f"INSERT INTO teams VALUES ({placeholders})",
                           (st.session_state.username, team_size, *details, *[""] * (15 - len(details))))
                 conn.commit()
-                submitted_success = True  # ✅ THIS forces the app to re-run and redirect immediately
+        
+        # ✅ Immediately redirect to transaction page on success
+                st.session_state.menu_redirect = "Transaction"
+                safe_rerun()
+  # ✅ THIS forces the app to re-run and redirect immediately
 
     if submitted_success:
         team_info = f"Team Leader: {details[0]} ({details[1]})\n"
