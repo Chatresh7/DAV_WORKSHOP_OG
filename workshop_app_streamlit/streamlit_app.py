@@ -741,13 +741,12 @@ elif choice == "Admin" and st.session_state.admin_logged_in:
 
 # Logout
 elif choice == "Logout":
-    # Clear all login/session-related state
-    for key in ["user_logged_in", "admin_logged_in", "username", "menu_redirect"]:
+    # Clear session state keys safely
+    for key in ["user_logged_in", "admin_logged_in", "username", "menu_redirect", "choice"]:
         st.session_state.pop(key, None)
 
-    # ✅ Reset menu choice to go back to home
-    st.session_state.choice = None
+    # Optional: Show message before rerun
+    st.success("✅ Logged out successfully! Redirecting to home...")
 
-    st.success("✅ Logged out successfully. Redirecting to Home...")
+    # Trigger rerun to reflect cleared session
     safe_rerun()
-
