@@ -168,6 +168,9 @@ if "clear_team_form" not in st.session_state:
     st.session_state.clear_team_form = False
 if "txn_success" not in st.session_state:
     st.session_state.txn_success = False
+if "logout_triggered" not in st.session_state:
+    st.session_state.logout_triggered = False
+
 
 def get_sidebar_choice():
     if st.session_state.user_logged_in:
@@ -198,6 +201,12 @@ def get_sidebar_choice():
 # Set sidebar choice globally
 #choice = get_sidebar_choice()
 choice = get_sidebar_choice()
+
+if st.session_state.logout_triggered:
+    st.session_state.logout_triggered = False
+    st.session_state.form_view = None
+    st.rerun()
+
 if "menu_redirect" in st.session_state:
     if st.session_state.menu_redirect != choice:
         # Set correct default in the selectbox and rerun
@@ -741,12 +750,8 @@ elif choice == "Admin" and st.session_state.admin_logged_in:
 
 # Logout
 elif choice == "Logout":
-    # Clear session state keys safely
-    for key in ["user_logged_in", "admin_logged_in", "username", "menu_redirect", "choice"]:
+    st.session_state.logout_triggered = True
+    for key in ["user_logged_in", "admin_logged_in", "username", "menu_redirect"]:
         st.session_state.pop(key, None)
-
-    # Optional: Show message before rerun
     st.success("✅ Logged out successfully! Redirecting to home...")
-
-    # Trigger rerun to reflect cleared session
     safe_rerun()
