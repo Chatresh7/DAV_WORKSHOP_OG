@@ -542,6 +542,29 @@ elif choice == "Admin" and st.session_state.admin_logged_in:
     st.subheader("Download Registration Details")
     reg_df = pd.read_sql_query("SELECT * FROM teams", conn)
 
+    # 💰 Total Revenue Generated (All Registrations)
+    total_df = reg_df.copy()
+    team_price_map = {
+        "Single (₹50)": 50,
+        "Duo (₹80)": 80,
+        "Trio (₹100)": 100
+    }
+    total_revenue = sum(team_price_map.get(ts, 0) for ts in total_df["team_size"])
+
+    st.markdown("""
+    <div style='
+        padding: 1rem;
+        background-color: #f9f9f9;
+        border-left: 5px solid green;
+        border-radius: 8px;
+        font-size: 18px;
+        margin-bottom: 1.5rem;
+    '>
+        🧾 <strong>Total Revenue Generated:</strong> ₹{:,}
+    </div>
+    """.format(total_revenue), unsafe_allow_html=True)
+
+
     st.subheader("🔍 Filter Registrations")
     year_filter = st.selectbox("Filter by Year", options=["All", "2", "3", "4"])
     branch_filter = st.selectbox("Filter by Branch", options=["All", "CSD", "CSE", "CSM", "IT"])
