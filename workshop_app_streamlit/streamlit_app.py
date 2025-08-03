@@ -622,26 +622,26 @@ elif choice == "Admin" and st.session_state.admin_logged_in:
     chart_df = filtered_df["branch1"].value_counts().reset_index()
     chart_df.columns = ["Branch", "Count"]
 
-    chart = alt.Chart(chart_df).mark_bar(
-    cornerRadiusTopLeft=6,
-    cornerRadiusTopRight=6
-).encode(
-    x=alt.X("Branch:N", sort="-y", axis=alt.Axis(labelColor="white", titleColor="white")),
-    y=alt.Y("Count:Q", axis=alt.Axis(labelColor="white", titleColor="white")),
-    color=alt.value("#6C63FF"),  # Soft purple color
-    tooltip=["Branch", "Count"]
+    chart = alt.Chart(chart_df).mark_bar().encode(
+    x=alt.X("Branch:N", sort='-y', axis=alt.Axis(labelColor='white', titleColor='white')),
+    y=alt.Y("Count:Q", axis=alt.Axis(labelColor='white', titleColor='white')),
+    tooltip=["Branch:N", "Count:Q"]
 ).properties(
-    title="Branch-wise Registration Chart",
+    title=alt.TitleParams(text="Branch-wise Registration Chart", color='white', fontSize=18),
     width=600,
-    height=350,
-    background="#0E1117"  # Match dark theme
+    height=400,
+    background='#0E1117'  # Ensures chart has dark bg
+).configure_view(
+    strokeWidth=0
+).configure_axis(
+    grid=False
 ).configure_title(
-    color='white',
-    fontSize=18
+    fontSize=18,
+    anchor='start',
+    color='white'
 )
 
     st.altair_chart(chart, use_container_width=True)
-
 
     # ✅ Full Data Download
     st.subheader("📁 Download Full Data")
