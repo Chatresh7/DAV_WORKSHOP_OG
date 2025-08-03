@@ -541,8 +541,8 @@ elif choice == "Admin" and st.session_state.admin_logged_in:
     st.title("Admin Panel")
     st.subheader("Download Registration Details")
     reg_df = pd.read_sql_query("SELECT * FROM teams", conn)
-    st.subheader("🔍 Filter Registrations")
 
+    st.subheader("🔍 Filter Registrations")
     year_filter = st.selectbox("Filter by Year", options=["All", "2", "3", "4"])
     branch_filter = st.selectbox("Filter by Branch", options=["All", "CSD", "CSE", "CSM", "IT"])
     section_filter = st.selectbox("Filter by Section", options=["All", "A", "B", "C", "D"])
@@ -576,20 +576,16 @@ elif choice == "Admin" and st.session_state.admin_logged_in:
 
     st.dataframe(filtered_df)
 
-# ✅ Summary Stats
+    # ✅ Summary Stats
     st.subheader("📊 Summary Stats")
 
-# Total teams in filtered view
     total_filtered_teams = len(filtered_df)
-
-# Calculate revenue based on filtered teams
     team_price_map = {
         "Single (₹50)": 50,
         "Duo (₹80)": 80,
         "Trio (₹100)": 100
     }
     total_filtered_revenue = sum(team_price_map.get(ts, 0) for ts in filtered_df["team_size"])
-
     team_size_counts = filtered_df["team_size"].value_counts()
 
     st.markdown(f"- Total Filtered Teams: **{total_filtered_teams}**")
@@ -597,6 +593,10 @@ elif choice == "Admin" and st.session_state.admin_logged_in:
     for team_label, count in team_size_counts.items():
         st.markdown(f"- {team_label}: {count} teams")
 
+    # ✅ Branch-wise chart from filtered data
+    st.subheader("📈 Branch-wise Registration Chart")
+    chart_df = filtered_df["branch1"].value_counts().reset_index()
+    chart_df.columns = ["Branch", "Count"]
 
     chart = alt.Chart(chart_df).mark_bar().encode(
         x=alt.X("Branch", sort="-y"),
@@ -606,7 +606,8 @@ elif choice == "Admin" and st.session_state.admin_logged_in:
 
     st.altair_chart(chart)
 
-
+    # ✅ Full Data Download
+    st.subheader("📁 Download Full Data")
     st.dataframe(reg_df)
     st.download_button("Download Registration CSV", reg_df.to_csv(index=False), "registrations.csv", "text/csv")
 
@@ -615,7 +616,8 @@ elif choice == "Admin" and st.session_state.admin_logged_in:
     st.dataframe(txn_df)
     st.download_button("Download Transaction CSV", txn_df.to_csv(index=False), "transactions.csv", "text/csv")
 
-    st.subheader("Preview Uploaded Screenshots and Amounts")
+    # ✅ Screenshot Preview
+    st.subheader("🖼️ Preview Uploaded Screenshots and Amounts")
     c = conn.cursor()
     c.execute("SELECT username, amount, txn_id, screenshot FROM transactions")
     txn_rows = c.fetchall()
@@ -624,7 +626,6 @@ elif choice == "Admin" and st.session_state.admin_logged_in:
         st.markdown(f"**👤 Username:** `{username}`  \n**💸 Amount Paid:** ₹{amount}  \n**🔖 Transaction ID:** `{txn_id}`")
 
         if screenshot_blob:
-        # Convert to base64
             b64 = base64.b64encode(screenshot_blob).decode()
             file_ext = "png"
             img_html = f'''
@@ -656,13 +657,12 @@ elif choice == "Admin" and st.session_state.admin_logged_in:
                 </div>
             </div>
             '''
-
             st.markdown(img_html, unsafe_allow_html=True)
         else:
             st.info("No screenshot uploaded.")
         st.markdown("---")
 
-
+    # ✅ Wipe Data Section
     st.subheader("💨 Danger Zone: Wipe All Data")
     with st.form("wipe_form"):
         admin_pwd = st.text_input("Enter Admin Password to Confirm", type="password")
@@ -677,7 +677,6 @@ elif choice == "Admin" and st.session_state.admin_logged_in:
                 safe_rerun()
             else:
                 st.error("❌ Incorrect password. Wipe operation aborted.")
-
 
 # Logout
 elif choice == "Logout":
