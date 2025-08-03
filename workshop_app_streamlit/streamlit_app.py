@@ -748,6 +748,41 @@ elif choice == "Admin" and st.session_state.admin_logged_in:
             else:
                 st.error("❌ Incorrect password. Wipe operation aborted.")
 
+    # ✅ Send Feedback Form
+    st.subheader("📩 Send Feedback Form to All Participants")
+
+    with st.form("feedback_form"):
+        feedback_pwd = st.text_input("Enter Admin Password", type="password")
+        send_form = st.form_submit_button("Send Feedback Form")
+
+        if send_form:
+            if feedback_pwd == "admin6677":
+                feedback_link = "https://forms.gle/XUemm3T2YQQBMDhN9"  # ✅ Your actual Google Form link
+
+                c.execute("SELECT username FROM users")
+                users = c.fetchall()
+
+                sent_count = 0
+                for (email,) in users:
+                    try:
+                        send_email(
+                            to_address=email,
+                            subject="📋 We value your feedback!",
+                            message_body=(
+                                "Thank you for participating in our workshop! We'd love your feedback.\n\n"
+                                f"Please take a moment to fill out this form: {feedback_link}\n\n"
+                                "Your feedback helps us improve future events. 😊"
+                            )
+                        )
+                        sent_count += 1
+                    except Exception as e:
+                        st.warning(f"❌ Failed to send to {email}: {e}")
+
+                st.success(f"✅ Feedback form sent to {sent_count} participants.")
+            else:
+                st.error("❌ Incorrect admin password.")
+
+
 # Logout
 elif choice == "Logout":
     st.session_state.logout_triggered = True
