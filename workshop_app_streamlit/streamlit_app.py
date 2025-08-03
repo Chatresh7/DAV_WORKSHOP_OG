@@ -554,10 +554,11 @@ elif choice == "Admin" and st.session_state.admin_logged_in:
     st.markdown("""
     <div style='
         padding: 1rem;
-        background-color: #f9f9f9;
-        border-left: 5px solid green;
+        background-color: #262730;
+        border-left: 5px solid #00C851;
         border-radius: 8px;
         font-size: 18px;
+        color: white;
         margin-bottom: 1.5rem;
     '>
         🧾 <strong>Total Revenue Generated:</strong> ₹{:,}
