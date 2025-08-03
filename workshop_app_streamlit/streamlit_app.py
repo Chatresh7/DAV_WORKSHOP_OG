@@ -623,19 +623,19 @@ elif choice == "Admin" and st.session_state.admin_logged_in:
     chart_df.columns = ["Branch", "Count"]
 
     chart = alt.Chart(chart_df).mark_bar(
-    cornerRadiusTop=6,
-    size=50,
-    color="#6C63FF"  # Soft modern purple
-    ).encode(
+    cornerRadiusTopLeft=6,
+    cornerRadiusTopRight=6
+).encode(
     x=alt.X("Branch:N", sort="-y", axis=alt.Axis(labelColor="white", titleColor="white")),
     y=alt.Y("Count:Q", axis=alt.Axis(labelColor="white", titleColor="white")),
+    color=alt.value("#6C63FF"),  # Soft purple color
     tooltip=["Branch", "Count"]
-    ).properties(
+).properties(
     title="Branch-wise Registration Chart",
     width=600,
     height=350,
-    background="#0E1117"  # Match Streamlit dark mode
-    ).configure_title(
+    background="#0E1117"  # Match dark theme
+).configure_title(
     color='white',
     fontSize=18
 )
