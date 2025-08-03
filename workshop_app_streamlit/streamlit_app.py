@@ -342,7 +342,7 @@ if not st.session_state.user_logged_in and not st.session_state.admin_logged_in:
 elif choice and choice == "Team Selection":
     st.title("Team Selection")
     team_size = st.radio("Select Team Size", ["Single (₹50)", "Duo (₹80)", "Trio (₹100)"])
-    size_map = {"Single (₹50)": 1, "Duo (₹80)": 2, "Trio (₹100)": 3}
+    size_map = {"Single (₹50)": 1, "Duo (₹80)", "Trio (₹100)": 3}
     size = size_map[team_size]
 
     if st.session_state.clear_team_form:
@@ -351,8 +351,6 @@ elif choice and choice == "Team Selection":
                 st.session_state.pop(f"{field}_{i}", None)
         st.session_state.clear_team_form = False
         safe_rerun()
-
-    submitted_success = False
 
     with st.form("team_form"):
         details = []
@@ -374,28 +372,6 @@ elif choice and choice == "Team Selection":
 
         if clear_btn:
             st.session_state.clear_team_form = True
-        if st.session_state.get("team_saved_successfully"):
-            details = st.session_state.team_qr_details
-            size = st.session_state.team_qr_size
-            team_info = f"Team Leader: {details[0]} ({details[1]})\n"
-            for i in range(1, size):
-                team_info += f"Member {i+1}: {details[i*5]} ({details[i*5+1]})\n"
-
-            qr_bytes = generate_team_qr(team_info)
-            st.success("✅ Team saved successfully!")
-            st.image(qr_bytes, caption="Your Team QR Code", width=250)
-            st.download_button("📥 Download QR Code", data=qr_bytes, file_name="team_qr.png")
-
-    # Optional: Show code as plain text
-            st.text_area("Team Code", team_info, height=100)
-    
-            st.markdown("Once done, proceed to the next step.")
-
-            if st.button("➡️ Proceed to Transaction Page"):
-                st.session_state.menu_redirect = "Transaction"
-                st.session_state.team_saved_successfully = False  # Clear flag
-                safe_rerun()
-
 
         if submit_team:
             if not details[0].strip() or not details[1].strip() or not details[2].strip():
@@ -408,24 +384,32 @@ elif choice and choice == "Team Selection":
                           (st.session_state.username, team_size, *details, *[""] * (15 - len(details))))
                 conn.commit()
 
-        # ✅ Store success state instead of redirecting immediately
+                # ✅ Store info for QR rendering after rerun
                 st.session_state.team_saved_successfully = True
                 st.session_state.team_qr_details = details
                 st.session_state.team_qr_size = size
-                st.rerun()
+                safe_rerun()
 
-
-
-    if submitted_success:
+    # ✅ After successful submission, show QR and proceed button
+    if st.session_state.get("team_saved_successfully"):
+        details = st.session_state.team_qr_details
+        size = st.session_state.team_qr_size
         team_info = f"Team Leader: {details[0]} ({details[1]})\n"
         for i in range(1, size):
             team_info += f"Member {i+1}: {details[i*5]} ({details[i*5+1]})\n"
 
         qr_bytes = generate_team_qr(team_info)
+
         st.success("✅ Team saved successfully!")
         st.image(qr_bytes, caption="Your Team QR Code", width=250)
         st.download_button("📥 Download QR Code", data=qr_bytes, file_name="team_qr.png")
-        st.info("Proceed to the Transaction tab to complete your registration.")
+        st.text_area("Team Code", team_info, height=100)
+        st.markdown("Once done, proceed to the next step.")
+
+        if st.button("➡️ Proceed to Transaction Page"):
+            st.session_state.menu_redirect = "Transaction"
+            st.session_state.team_saved_successfully = False
+            safe_rerun()
 
 
 # Transaction
