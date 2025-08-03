@@ -412,7 +412,8 @@ elif choice and choice == "Team Selection":
                 st.session_state.team_saved_successfully = True
                 st.session_state.team_qr_details = details
                 st.session_state.team_qr_size = size
-                st.experimental_rerun()
+                st.rerun()
+
 
 
     if submitted_success:
