@@ -439,7 +439,7 @@ elif choice == "Transaction":
 
             if submit_txn:
                 if not valid_txn:
-                    st.error("❌ Invalid Transaction ID format. It should start with 'T' followed by exactly 22 digits.")
+                    st.error("❌ Invalid Transaction ID format.")
                 elif not screenshot:
                     st.error("❌ Please upload the transaction screenshot.")
                 else:
@@ -642,7 +642,7 @@ elif choice == "Admin" and st.session_state.admin_logged_in:
         admin_pwd = st.text_input("Enter Admin Password to Confirm", type="password")
         confirm_wipe = st.form_submit_button("Wipe All Data")
         if confirm_wipe:
-            if admin_pwd == "admin234":
+            if admin_pwd == "admin6677":
                 c.execute("DELETE FROM users")
                 c.execute("DELETE FROM teams")
                 c.execute("DELETE FROM transactions")
