@@ -374,6 +374,28 @@ elif choice and choice == "Team Selection":
 
         if clear_btn:
             st.session_state.clear_team_form = True
+        if st.session_state.get("team_saved_successfully"):
+            details = st.session_state.team_qr_details
+            size = st.session_state.team_qr_size
+            team_info = f"Team Leader: {details[0]} ({details[1]})\n"
+            for i in range(1, size):
+                team_info += f"Member {i+1}: {details[i*5]} ({details[i*5+1]})\n"
+
+            qr_bytes = generate_team_qr(team_info)
+            st.success("✅ Team saved successfully!")
+            st.image(qr_bytes, caption="Your Team QR Code", width=250)
+            st.download_button("📥 Download QR Code", data=qr_bytes, file_name="team_qr.png")
+
+    # Optional: Show code as plain text
+            st.text_area("Team Code", team_info, height=100)
+    
+            st.markdown("Once done, proceed to the next step.")
+
+            if st.button("➡️ Proceed to Transaction Page"):
+                st.session_state.menu_redirect = "Transaction"
+                st.session_state.team_saved_successfully = False  # Clear flag
+                safe_rerun()
+
 
         if submit_team:
             if not details[0].strip() or not details[1].strip() or not details[2].strip():
@@ -385,11 +407,13 @@ elif choice and choice == "Team Selection":
                 c.execute(f"INSERT INTO teams VALUES ({placeholders})",
                           (st.session_state.username, team_size, *details, *[""] * (15 - len(details))))
                 conn.commit()
-        
-        # ✅ Immediately redirect to transaction page on success
-                st.session_state.menu_redirect = "Transaction"
-                safe_rerun()
-  # ✅ THIS forces the app to re-run and redirect immediately
+
+        # ✅ Store success state instead of redirecting immediately
+                st.session_state.team_saved_successfully = True
+                st.session_state.team_qr_details = details
+                st.session_state.team_qr_size = size
+                st.experimental_rerun()
+
 
     if submitted_success:
         team_info = f"Team Leader: {details[0]} ({details[1]})\n"
