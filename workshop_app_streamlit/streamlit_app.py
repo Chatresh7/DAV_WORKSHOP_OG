@@ -724,5 +724,6 @@ elif choice == "Logout":
     st.session_state.user_logged_in = False
     st.session_state.admin_logged_in = False
     st.session_state.username = ""
+    st.session_state.pop("menu_redirect", None)  # ✅ Clears it completely
     st.success("Logged out successfully.")
     safe_rerun()
