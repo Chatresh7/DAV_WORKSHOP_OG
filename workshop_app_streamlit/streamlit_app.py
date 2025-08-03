@@ -622,14 +622,22 @@ elif choice == "Admin" and st.session_state.admin_logged_in:
     chart_df = filtered_df["branch1"].value_counts().reset_index()
     chart_df.columns = ["Branch", "Count"]
 
-    chart = alt.Chart(chart_df).mark_bar(color="#1DB954").encode(  # Spotify green for contrast
-    x=alt.X("Branch", sort="-y", axis=alt.Axis(labelColor="white", titleColor="white")),
-    y=alt.Y("Count", axis=alt.Axis(labelColor="white", titleColor="white")),
+    chart = alt.Chart(chart_df).mark_bar(
+    cornerRadiusTop=6,
+    size=50,
+    color="#6C63FF"  # Soft modern purple
+    ).encode(
+    x=alt.X("Branch:N", sort="-y", axis=alt.Axis(labelColor="white", titleColor="white")),
+    y=alt.Y("Count:Q", axis=alt.Axis(labelColor="white", titleColor="white")),
     tooltip=["Branch", "Count"]
     ).properties(
-    width=500,
-    height=300,
-    background="#0E1117"  # Match Streamlit dark theme
+    title="Branch-wise Registration Chart",
+    width=600,
+    height=350,
+    background="#0E1117"  # Match Streamlit dark mode
+    ).configure_title(
+    color='white',
+    fontSize=18
 )
 
     st.altair_chart(chart, use_container_width=True)
