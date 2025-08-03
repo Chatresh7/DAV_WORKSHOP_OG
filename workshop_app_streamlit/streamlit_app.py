@@ -622,13 +622,18 @@ elif choice == "Admin" and st.session_state.admin_logged_in:
     chart_df = filtered_df["branch1"].value_counts().reset_index()
     chart_df.columns = ["Branch", "Count"]
 
-    chart = alt.Chart(chart_df).mark_bar().encode(
-        x=alt.X("Branch", sort="-y"),
-        y="Count",
-        tooltip=["Branch", "Count"]
-    ).properties(width=500)
+    chart = alt.Chart(chart_df).mark_bar(color="#1DB954").encode(  # Spotify green for contrast
+    x=alt.X("Branch", sort="-y", axis=alt.Axis(labelColor="white", titleColor="white")),
+    y=alt.Y("Count", axis=alt.Axis(labelColor="white", titleColor="white")),
+    tooltip=["Branch", "Count"]
+    ).properties(
+    width=500,
+    height=300,
+    background="#0E1117"  # Match Streamlit dark theme
+)
 
-    st.altair_chart(chart)
+    st.altair_chart(chart, use_container_width=True)
+
 
     # ✅ Full Data Download
     st.subheader("📁 Download Full Data")
