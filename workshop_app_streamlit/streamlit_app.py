@@ -549,28 +549,54 @@ elif choice == "Admin" and st.session_state.admin_logged_in:
     team_size_filter = st.selectbox("Filter by Team Size", options=["All", "Single (₹50)", "Duo (₹80)", "Trio (₹100)"])
 
     filtered_df = reg_df.copy()
+
     if year_filter != "All":
-        filtered_df = filtered_df[filtered_df["year1"] == year_filter]
+        filtered_df = filtered_df[
+            (filtered_df["year1"] == year_filter) |
+            (filtered_df["year2"] == year_filter) |
+            (filtered_df["year3"] == year_filter)
+        ]
+
     if branch_filter != "All":
-        filtered_df = filtered_df[filtered_df["branch1"] == branch_filter]
+        filtered_df = filtered_df[
+            (filtered_df["branch1"] == branch_filter) |
+            (filtered_df["branch2"] == branch_filter) |
+            (filtered_df["branch3"] == branch_filter)
+        ]
+
     if section_filter != "All":
-        filtered_df = filtered_df[filtered_df["section1"] == section_filter]
+        filtered_df = filtered_df[
+            (filtered_df["section1"] == section_filter) |
+            (filtered_df["section2"] == section_filter) |
+            (filtered_df["section3"] == section_filter)
+        ]
+
     if team_size_filter != "All":
         filtered_df = filtered_df[filtered_df["team_size"] == team_size_filter]
 
     st.dataframe(filtered_df)
-    st.subheader("📊 Summary Stats")
-    total_teams = len(reg_df)
-    total_amount = sum({"Single (₹50)": 50, "Duo (₹80)": 80, "Trio (₹100)": 100}.get(x, 0) for x in reg_df["team_size"])
-    team_size_counts = reg_df["team_size"].value_counts()
 
-    st.markdown(f"- Total Teams: **{total_teams}**")
-    st.markdown(f"- Total Amount Collected: **₹{total_amount}**")
-    for k, v in team_size_counts.items():
-        st.markdown(f"- {k}: {v} teams")
-    st.subheader("📈 Branch-wise Registration Chart")
-    chart_df = reg_df["branch1"].value_counts().reset_index()
-    chart_df.columns = ["Branch", "Count"]
+# ✅ Summary Stats
+    st.subheader("📊 Summary Stats")
+
+# Total teams in filtered view
+    total_filtered_teams = len(filtered_df)
+
+# Calculate revenue based on filtered teams
+    team_price_map = {
+        "Single (₹50)": 50,
+        "Duo (₹80)": 80,
+        "Trio (₹100)": 100
+    }
+    total_filtered_revenue = sum(team_price_map.get(ts, 0) for ts in filtered_df["team_size"])
+
+    team_size_counts = filtered_df["team_size"].value_counts()
+
+    st.markdown(f"- Total Filtered Teams: **{total_filtered_teams}**")
+    st.markdown(f"- Revenue from Filtered Teams: **₹{total_filtered_revenue}**")
+    for team_label, count in team_size_counts.items():
+        st.markdown(f"- {team_label}: {count} teams")
+
 
     chart = alt.Chart(chart_df).mark_bar().encode(
         x=alt.X("Branch", sort="-y"),
