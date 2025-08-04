@@ -351,15 +351,15 @@ if not st.session_state.user_logged_in and not st.session_state.admin_logged_in:
 elif choice and choice == "Team Selection":
     if "username" in st.session_state and st.session_state.username != st.session_state.get("last_team_user"):
     # This block executes when a new user logs in
-    st.session_state.pop("team_saved_successfully", None)
-    st.session_state.pop("qr_details", None)
-    st.session_state.pop("qr_team_size", None)
-    st.session_state.pop("team_code", None)
-    st.session_state.pop("clear_team_form", None)
+        st.session_state.pop("team_saved_successfully", None)
+        st.session_state.pop("qr_details", None)
+        st.session_state.pop("qr_team_size", None)
+        st.session_state.pop("team_code", None)
+        st.session_state.pop("clear_team_form", None)
 
     # Store the current username to prevent this from running on every rerun
-    st.session_state.last_team_user = st.session_state.username
-    st.rerun()
+        st.session_state.last_team_user = st.session_state.username
+        st.rerun()
     
     import uuid  # Required for generating team code
 
