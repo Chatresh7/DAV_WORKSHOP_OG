@@ -426,10 +426,9 @@ elif choice and choice == "Team Selection":
         st.download_button("📥 Download QR Code", data=qr_bytes, file_name="team_qr.png")
         st.text_area("Team Code Info", team_info, height=120)
 
-        if st.button("➡️ Proceed to Transaction Page"):
-            st.session_state.menu_redirect = "Transaction"
-            st.session_state.team_saved_successfully = False  # Clear flag
-            safe_rerun()
+        st.info("✅ Team saved successfully. Now proceed to the **Transaction** page from the sidebar.")
+        st.markdown("👉 Use the **Navigation** panel on the left to open the Transaction page.")
+
 
 
 # Transaction
