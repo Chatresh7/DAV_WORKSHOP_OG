@@ -207,11 +207,13 @@ if st.session_state.logout_triggered:
     st.session_state.form_view = None
     st.rerun()
 
+# ✅ Corrected logic to apply menu_redirect after rerun
 if "menu_redirect" in st.session_state:
     if st.session_state.menu_redirect != choice:
-        # Set correct default in the selectbox and rerun
         st.rerun()
-    del st.session_state.menu_redirect
+    else:
+        del st.session_state.menu_redirect
+
 
 
 
