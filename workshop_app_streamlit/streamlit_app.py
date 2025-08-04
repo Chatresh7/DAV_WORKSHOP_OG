@@ -369,9 +369,9 @@ elif choice and choice == "Team Selection":
             with st.expander(f"👥 Member {i} Details", expanded=True):
                 name = st.text_input(f"👤 Name", key=f"name_{i}")
                 reg = st.text_input("🆔 Reg Number", key=f"reg_{i}")
-                year = st.selectbox("🎓 Year", ["", "I", "II", "III", "IV"], key=f"year_{i}")
-                branch = st.selectbox("🏫 Branch", ["", "CSE", "ECE", "EEE", "MECH", "CIVIL", "IT", "AIML", "DS", "CSM", "CSO", "IOT"], key=f"branch_{i}")
-                section = st.selectbox("🔤 Section", ["", "A", "B", "C", "D", "E", "F"], key=f"section_{i}")
+                year = st.selectbox("🎓 Year", ["", "2", "3", "4"], key=f"year_{i}")
+                branch = st.selectbox("🏫 Branch", ["", "CSD", "CSM", "CSE", "IT"], key=f"branch_{i}")
+                section = st.selectbox("🔤 Section", ["", "A", "B", "C", "D"], key=f"section_{i}")
 
                 details.extend([name, reg, year, branch, section])
 
