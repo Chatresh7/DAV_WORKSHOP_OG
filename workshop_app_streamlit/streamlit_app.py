@@ -290,69 +290,10 @@ if not st.session_state.user_logged_in and not st.session_state.admin_logged_in:
 
 
 
-# Sidebar menu based on login and team registration status
-#menu = ["Register", "Login"]
 
 
 
 
-
-#choice = st.sidebar.selectbox("Navigation", menu)
-
-
-# Register
-# if choice == "Register":
-#     st.title("User Registration")
-#     with st.form("register_form"):
-#         username = st.text_input("Email ID (will be your username)")
-#         password = st.text_input("Password", type="password")
-#         submitted = st.form_submit_button("Register")
-#         if submitted:
-#             if not username or not password:
-#                 st.error("All fields are required.")
-#             elif not is_valid_email(username):
-#                 st.error("Please enter a valid email address.")
-#             else:
-#                 c = conn.cursor()
-#                 c.execute("SELECT 1 FROM users WHERE username=?", (username,))
-#                 if c.fetchone():
-#                     st.error("This email is already registered. Please login.")
-#                 else:
-#                     try:
-#                         c.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username, password))
-#                         conn.commit()
-#                         st.success("Registered successfully. Please login.")
-#                         send_email(
-#                             username,
-#                             "Workshop Registration Confirmed ✅",
-#                             "Thank you for registering! You've successfully created an account in the Workshop Portal."
-#                         )
-#                     except:
-#                         st.error("Error occurred while registering.")
-
-
-# # Login
-# elif choice == "Login":
-#     st.title("Login")
-#     with st.form("login_form"):
-#         username = st.text_input("Email ID")
-#         password = st.text_input("Password", type="password")
-#         login_btn = st.form_submit_button("Login")
-#         if login_btn:
-#             if username == "admin" and password == "admin123":
-#                 st.session_state.admin_logged_in = True
-#                 st.success("Admin login successful.")
-#                 safe_rerun()
-#             else:
-#                 c = conn.cursor()
-#                 c.execute("SELECT * FROM users WHERE username=? AND password=?", (username, password))
-#                 if c.fetchone():
-#                     st.session_state.user_logged_in = True
-#                     st.session_state.username = username
-#                     st.success("Logged in successfully!")
-#                     safe_rerun()
-#                 else:
-#                     st.error("Invalid credentials.")
 
 
 
@@ -500,6 +441,9 @@ elif choice == "Transaction":
                         st.session_state.last_price = price
                         st.session_state.txn_success = True  # ✅ Set success
                         st.success("✅ Transaction submitted successfully.")
+                        st.session_state.menu_redirect = "Transaction"  # 🛠️ Ensure it comes back to Transaction
+                        safe_rerun()  # ✅ Refresh so confirmation block runs next time
+
 
     else:
         st.warning("⚠️ Please fill out team details first on the 'Team Selection' page.")
