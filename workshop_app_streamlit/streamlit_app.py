@@ -493,6 +493,7 @@ elif choice == "Transaction":
                         st.session_state.last_txn_id = txn_id
                         st.session_state.last_price = price
                         st.session_state.txn_success = True
+                        st.session_state.menu_redirect = "Transaction"
                         st.success("✅ Transaction submitted successfully.")
                         safe_rerun()
     else:
