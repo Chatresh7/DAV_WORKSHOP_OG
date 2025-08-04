@@ -500,7 +500,6 @@ elif choice == "Transaction":
                         st.session_state.last_price = price
                         st.session_state.txn_success = True  # ✅ Set success
                         st.success("✅ Transaction submitted successfully.")
-                        safe_rerun()  # ✅ Refresh so confirmation block runs next time
 
     else:
         st.warning("⚠️ Please fill out team details first on the 'Team Selection' page.")
