@@ -366,14 +366,15 @@ elif choice and choice == "Team Selection":
     with st.form("team_form"):
         details = []
         for i in range(1, size + 1):
-            label_suffix = f" {i}" if size != 1 else ""
-            st.subheader("Your Details" if size == 1 else f"Member {i}")
-            name = st.text_input(f"Name{label_suffix}", key=f"name_{i}")
-            reg = st.text_input(f"Reg Number{label_suffix}", key=f"reg_{i}")
-            year = st.selectbox(f"Year{label_suffix}", options=["2", "3", "4"], key=f"year_{i}")
-            branch = st.selectbox(f"Branch{label_suffix}", options=["CSD", "CSE", "CSM", "IT"], key=f"branch_{i}")
-            section = st.selectbox(f"Section{label_suffix}", options=["A", "B", "C", "D"], key=f"section_{i}")
+        with st.expander(f"👥 Member {i} Details", expanded=True):
+            name = st.text_input(f"👤 Name", key=f"name_{i}")
+            reg = st.text_input("🆔 Reg Number", key=f"reg_{i}")
+            year = st.selectbox("🎓 Year", ["", "I", "II", "III", "IV"], key=f"year_{i}")
+            branch = st.selectbox("🏫 Branch", ["", "CSE", "ECE", "EEE", "MECH", "CIVIL", "IT", "AIML", "DS", "CSM", "CSO", "IOT"], key=f"branch_{i}")
+            section = st.selectbox("🔤 Section", ["", "A", "B", "C", "D", "E", "F"], key=f"section_{i}")
+
             details.extend([name, reg, year, branch, section])
+
 
         col1, col2 = st.columns(2)
         with col1:
