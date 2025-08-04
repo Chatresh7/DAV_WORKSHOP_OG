@@ -395,13 +395,19 @@ elif choice and choice == "Team Selection":
                           (st.session_state.username, team_size, *details, *[""] * (15 - len(details))))
                 conn.commit()
 
-                # ✅ Save team code, details in session for QR
                 team_code = f"DAVTEAM-{uuid.uuid4().hex[:8].upper()}"
                 st.session_state.team_code = team_code
                 st.session_state.qr_details = details
                 st.session_state.qr_team_size = size
                 st.session_state.team_saved_successfully = True
+
+        # ✅ Clear form inputs after submission
+                for i in range(1, 4):
+                    for field in ["name", "reg", "year", "branch", "section"]:
+                        st.session_state.pop(f"{field}_{i}", None)
+
                 safe_rerun()
+
 
     # ✅ After rerun, show QR and transaction link
     if (
