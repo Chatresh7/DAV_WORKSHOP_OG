@@ -200,26 +200,18 @@ def get_sidebar_choice():
 
 # Set sidebar choice globally
 #choice = get_sidebar_choice()
-# ✅ Apply redirect BEFORE sidebar renders
-if "menu_redirect" in st.session_state:
-    st.session_state._force_redirect = st.session_state.menu_redirect
-    del st.session_state.menu_redirect
-
-# ✅ Evaluate sidebar after redirect flag is prepared
 choice = get_sidebar_choice()
 
-# ✅ Override sidebar choice if redirect was set
-if "_force_redirect" in st.session_state:
-    choice = st.session_state._force_redirect
-    del st.session_state._force_redirect
-
-# ✅ Handle logout
 if st.session_state.logout_triggered:
     st.session_state.logout_triggered = False
     st.session_state.form_view = None
     st.rerun()
 
-
+if "menu_redirect" in st.session_state:
+    if st.session_state.menu_redirect != choice:
+        # Set correct default in the selectbox and rerun
+        st.rerun()
+    del st.session_state.menu_redirect
 
 
 
@@ -290,10 +282,69 @@ if not st.session_state.user_logged_in and not st.session_state.admin_logged_in:
 
 
 
+# Sidebar menu based on login and team registration status
+#menu = ["Register", "Login"]
 
 
 
 
+
+#choice = st.sidebar.selectbox("Navigation", menu)
+
+
+# Register
+# if choice == "Register":
+#     st.title("User Registration")
+#     with st.form("register_form"):
+#         username = st.text_input("Email ID (will be your username)")
+#         password = st.text_input("Password", type="password")
+#         submitted = st.form_submit_button("Register")
+#         if submitted:
+#             if not username or not password:
+#                 st.error("All fields are required.")
+#             elif not is_valid_email(username):
+#                 st.error("Please enter a valid email address.")
+#             else:
+#                 c = conn.cursor()
+#                 c.execute("SELECT 1 FROM users WHERE username=?", (username,))
+#                 if c.fetchone():
+#                     st.error("This email is already registered. Please login.")
+#                 else:
+#                     try:
+#                         c.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username, password))
+#                         conn.commit()
+#                         st.success("Registered successfully. Please login.")
+#                         send_email(
+#                             username,
+#                             "Workshop Registration Confirmed ✅",
+#                             "Thank you for registering! You've successfully created an account in the Workshop Portal."
+#                         )
+#                     except:
+#                         st.error("Error occurred while registering.")
+
+
+# # Login
+# elif choice == "Login":
+#     st.title("Login")
+#     with st.form("login_form"):
+#         username = st.text_input("Email ID")
+#         password = st.text_input("Password", type="password")
+#         login_btn = st.form_submit_button("Login")
+#         if login_btn:
+#             if username == "admin" and password == "admin123":
+#                 st.session_state.admin_logged_in = True
+#                 st.success("Admin login successful.")
+#                 safe_rerun()
+#             else:
+#                 c = conn.cursor()
+#                 c.execute("SELECT * FROM users WHERE username=? AND password=?", (username, password))
+#                 if c.fetchone():
+#                     st.session_state.user_logged_in = True
+#                     st.session_state.username = username
+#                     st.success("Logged in successfully!")
+#                     safe_rerun()
+#                 else:
+#                     st.error("Invalid credentials.")
 
 
 
@@ -425,12 +476,14 @@ elif choice == "Transaction":
                 elif not screenshot:
                     st.error("❌ Please upload the transaction screenshot.")
                 else:
+                    # ✅ Check if the transaction ID already exists in the database
                     c.execute("SELECT txn_id FROM transactions WHERE txn_id = ?", (txn_id,))
                     existing_txn = c.fetchone()
 
                     if existing_txn:
                         st.error("❌ Transaction ID already exists. Please check your entry.")
                     else:
+                        # ✅ Insert the new transaction if ID is unique
                         image_bytes = screenshot.read()
                         c.execute(
                             "REPLACE INTO transactions (username, amount, txn_id, screenshot) VALUES (?, ?, ?, ?)",
@@ -440,15 +493,16 @@ elif choice == "Transaction":
                         st.session_state.last_txn_id = txn_id
                         st.session_state.last_price = price
                         st.session_state.txn_success = True
-                        st.session_state.txn_email_sent = False
-
+                        st.success("✅ Transaction submitted successfully.")
+                        safe_rerun()
     else:
         st.warning("⚠️ Please fill out team details first on the 'Team Selection' page.")
 
-    # ✅ Final confirmation and email logic
-    if st.session_state.txn_success and not st.session_state.get("txn_email_sent", False):
-        st.success("✅ Transaction submitted successfully.")
+    # ✅ After rerun - show WhatsApp join link and confirmation
+    if st.session_state.txn_success:
+        st.success("Transaction recorded successfully!")
 
+        # ✅ Fetch team details from DB
         c.execute("SELECT * FROM teams WHERE username=?", (st.session_state.username,))
         team_row = c.fetchone()
         if team_row:
@@ -472,6 +526,7 @@ elif choice == "Transaction":
             team_data = {"team_size": team_size, "members": members}
             pdf_bytes = generate_team_pdf(team_data, st.session_state.username)
 
+            # ✅ Send email with PDF
             try:
                 send_email_with_pdf(
                     to_address=st.session_state.username,
@@ -488,6 +543,7 @@ elif choice == "Transaction":
             except Exception as e:
                 st.warning(f"📧 Email failed to send: {e}")
 
+        # ✅ Show WhatsApp join button
         st.markdown(
             """
             <a href="https://chat.whatsapp.com/CGE0UiKKPeu63xzZqs8sMW" target="_blank"
@@ -502,9 +558,7 @@ elif choice == "Transaction":
             unsafe_allow_html=True
         )
 
-        # ✅ Now mark success flow completed
         st.session_state.txn_success = False
-        st.session_state.txn_email_sent = True
 
 
 
@@ -679,14 +733,6 @@ elif choice == "Admin" and st.session_state.admin_logged_in:
         st.markdown("---")
 
     # ✅ Wipe Data Section
-    st.subheader("📥 Download Backup of users.db")
-
-    try:
-        with open("users.db", "rb") as f:
-            st.download_button("💾 Download users.db", f, file_name="users.db")
-    except FileNotFoundError:
-        st.error("❌ users.db file not found.")
-
     st.subheader("💨 Danger Zone: Wipe All Data")
     with st.form("wipe_form"):
         admin_pwd = st.text_input("Enter Admin Password to Confirm", type="password")
