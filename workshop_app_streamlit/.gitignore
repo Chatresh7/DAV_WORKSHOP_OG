@@ -1,0 +1,20 @@
+# Don't track local SQLite DB
+users.db
+
+# Byte-compiled / cache files
+__pycache__/
+*.py[cod]
+
+# Don't track virtual environment (if created)
+venv/
+.env/
+.envrc/
+
+# Secret configuration files
+.secrets.toml
+
+# OS and editor files
+.DS_Store
+*.swp
+Thumbs.db
+
