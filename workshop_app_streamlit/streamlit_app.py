@@ -733,6 +733,14 @@ elif choice == "Admin" and st.session_state.admin_logged_in:
         st.markdown("---")
 
     # ✅ Wipe Data Section
+    st.subheader("📥 Download Backup of users.db")
+
+    try:
+        with open("users.db", "rb") as f:
+            st.download_button("💾 Download users.db", f, file_name="users.db")
+    except FileNotFoundError:
+        st.error("❌ users.db file not found.")
+
     st.subheader("💨 Danger Zone: Wipe All Data")
     with st.form("wipe_form"):
         admin_pwd = st.text_input("Enter Admin Password to Confirm", type="password")
