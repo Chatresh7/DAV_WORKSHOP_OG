@@ -1,5 +1,4 @@
-# Don't track local SQLite DB
-users.db
+
 
 # Byte-compiled / cache files
 __pycache__/
