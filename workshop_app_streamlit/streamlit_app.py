@@ -439,22 +439,16 @@ elif choice == "Transaction":
                         conn.commit()
                         st.session_state.last_txn_id = txn_id
                         st.session_state.last_price = price
-                        st.session_state.txn_success = True  # ✅ Set success
+                        st.session_state.txn_success = True
                         st.session_state.txn_email_sent = False
-                        st.success("✅ Transaction submitted successfully.")
-                        st.session_state.menu_redirect = "Transaction"  # 🛠️ Ensure it comes back to Transaction
-                        st.experimental_set_query_params(txn="1")
-                        safe_rerun()  # ✅ Refresh so confirmation block runs next time
-
 
     else:
         st.warning("⚠️ Please fill out team details first on the 'Team Selection' page.")
 
-    # ✅ After rerun - show WhatsApp join link and confirmation
+    # ✅ Final confirmation and email logic
     if st.session_state.txn_success and not st.session_state.get("txn_email_sent", False):
-        st.success("Transaction recorded successfully!")
+        st.success("✅ Transaction submitted successfully.")
 
-        # ✅ Fetch team details from DB
         c.execute("SELECT * FROM teams WHERE username=?", (st.session_state.username,))
         team_row = c.fetchone()
         if team_row:
@@ -478,7 +472,6 @@ elif choice == "Transaction":
             team_data = {"team_size": team_size, "members": members}
             pdf_bytes = generate_team_pdf(team_data, st.session_state.username)
 
-            # ✅ Send email with PDF
             try:
                 send_email_with_pdf(
                     to_address=st.session_state.username,
@@ -495,7 +488,6 @@ elif choice == "Transaction":
             except Exception as e:
                 st.warning(f"📧 Email failed to send: {e}")
 
-        # ✅ Show WhatsApp join button
         st.markdown(
             """
             <a href="https://chat.whatsapp.com/CGE0UiKKPeu63xzZqs8sMW" target="_blank"
@@ -510,6 +502,7 @@ elif choice == "Transaction":
             unsafe_allow_html=True
         )
 
+        # ✅ Now mark success flow completed
         st.session_state.txn_success = False
         st.session_state.txn_email_sent = True
 
