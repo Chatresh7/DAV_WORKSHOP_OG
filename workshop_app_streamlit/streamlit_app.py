@@ -484,14 +484,12 @@ elif choice == "Transaction":
                 elif not screenshot:
                     st.error("❌ Please upload the transaction screenshot.")
                 else:
-                    # ✅ Check if the transaction ID already exists in the database
                     c.execute("SELECT txn_id FROM transactions WHERE txn_id = ?", (txn_id,))
                     existing_txn = c.fetchone()
 
                     if existing_txn:
                         st.error("❌ Transaction ID already exists. Please check your entry.")
                     else:
-                        # ✅ Insert the new transaction if ID is unique
                         image_bytes = screenshot.read()
                         c.execute(
                             "REPLACE INTO transactions (username, amount, txn_id, screenshot) VALUES (?, ?, ?, ?)",
@@ -500,10 +498,10 @@ elif choice == "Transaction":
                         conn.commit()
                         st.session_state.last_txn_id = txn_id
                         st.session_state.last_price = price
-                        st.session_state.txn_success = True
-                        st.session_state.menu_redirect = "Transaction"
+                        st.session_state.txn_success = True  # ✅ Set success
                         st.success("✅ Transaction submitted successfully.")
-                        safe_rerun()
+                        safe_rerun()  # ✅ Refresh so confirmation block runs next time
+
     else:
         st.warning("⚠️ Please fill out team details first on the 'Team Selection' page.")
 
