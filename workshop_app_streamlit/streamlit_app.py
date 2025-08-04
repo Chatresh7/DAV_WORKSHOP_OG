@@ -200,19 +200,25 @@ def get_sidebar_choice():
 
 # Set sidebar choice globally
 #choice = get_sidebar_choice()
+# ✅ Apply redirect BEFORE sidebar renders
+if "menu_redirect" in st.session_state:
+    st.session_state._force_redirect = st.session_state.menu_redirect
+    del st.session_state.menu_redirect
+
+# ✅ Evaluate sidebar after redirect flag is prepared
 choice = get_sidebar_choice()
 
+# ✅ Override sidebar choice if redirect was set
+if "_force_redirect" in st.session_state:
+    choice = st.session_state._force_redirect
+    del st.session_state._force_redirect
+
+# ✅ Handle logout
 if st.session_state.logout_triggered:
     st.session_state.logout_triggered = False
     st.session_state.form_view = None
     st.rerun()
 
-# ✅ Corrected logic to apply menu_redirect after rerun
-if "menu_redirect" in st.session_state:
-    if st.session_state.menu_redirect != choice:
-        st.rerun()
-    else:
-        del st.session_state.menu_redirect
 
 
 
