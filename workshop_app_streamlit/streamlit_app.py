@@ -806,5 +806,11 @@ elif choice == "Logout":
     st.session_state.logout_triggered = True
     for key in ["user_logged_in", "admin_logged_in", "username", "menu_redirect"]:
         st.session_state.pop(key, None)
+    st.session_state.pop("team_saved_successfully", None)
+    st.session_state.pop("qr_details", None)
+    st.session_state.pop("qr_team_size", None)
+    st.session_state.pop("team_code", None)
+    st.session_state.pop("clear_team_form", None)
+    st.session_state.pop("last_team_user", None)
     st.success("✅ Logged out successfully! Redirecting to home...")
     safe_rerun()
