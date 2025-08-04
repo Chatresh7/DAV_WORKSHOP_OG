@@ -440,8 +440,10 @@ elif choice == "Transaction":
                         st.session_state.last_txn_id = txn_id
                         st.session_state.last_price = price
                         st.session_state.txn_success = True  # ✅ Set success
+                        st.session_state.txn_email_sent = False
                         st.success("✅ Transaction submitted successfully.")
                         st.session_state.menu_redirect = "Transaction"  # 🛠️ Ensure it comes back to Transaction
+                        st.experimental_set_query_params(txn="1")
                         safe_rerun()  # ✅ Refresh so confirmation block runs next time
 
 
@@ -449,7 +451,7 @@ elif choice == "Transaction":
         st.warning("⚠️ Please fill out team details first on the 'Team Selection' page.")
 
     # ✅ After rerun - show WhatsApp join link and confirmation
-    if st.session_state.txn_success:
+    if st.session_state.txn_success and not st.session_state.get("txn_email_sent", False):
         st.success("Transaction recorded successfully!")
 
         # ✅ Fetch team details from DB
@@ -509,6 +511,7 @@ elif choice == "Transaction":
         )
 
         st.session_state.txn_success = False
+        st.session_state.txn_email_sent = True
 
 
 
