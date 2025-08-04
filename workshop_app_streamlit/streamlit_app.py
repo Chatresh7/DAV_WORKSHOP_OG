@@ -403,7 +403,7 @@ elif choice and choice == "Team Selection":
                 st.session_state.team_saved_successfully = True
 
         # ✅ Clear form inputs after submission
-                for i in range(1, 4):
+                for i in range(1, size + 1):
                     for field in ["name", "reg", "year", "branch", "section"]:
                         st.session_state.pop(f"{field}_{i}", None)
 
